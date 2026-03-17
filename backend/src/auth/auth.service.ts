@@ -169,7 +169,7 @@ export class AuthService {
     this.authRateLimitService.recordFailure(rateLimitKey, 15 * 60 * 1000);
 
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
-    const resetUrl = `${frontendUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+    const resetUrl = `${frontendUrl}/auth?token=${token}&email=${encodeURIComponent(email)}`;
 
     await this.sendPasswordResetEmail(email, resetUrl);
 
