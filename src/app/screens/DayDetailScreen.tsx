@@ -6,15 +6,16 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
+import { useCurrentDateKey } from '../lib/date';
 
 export function DayDetailScreen() {
   const { date } = useParams();
   const navigate = useNavigate();
   const { getDailyRecord, updateDailyRecord, tasks } = useData();
+  const today = useCurrentDateKey();
 
   if (!date) return null;
 
-  const today = new Date().toISOString().split('T')[0];
   const selectedDate = new Date(date + 'T00:00:00');
   const record = getDailyRecord(date);
   const dayTasks = tasks.filter(t => t.date === date);

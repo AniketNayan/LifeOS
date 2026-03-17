@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
+import { parseDateKey, useCurrentDateKey } from '../lib/date';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,7 @@ export function GoalDetailScreen() {
   const navigate = useNavigate();
   const { goals, toggleShortGoal, claimReward, updateGoal, deleteGoal, addMilestone, deleteMilestone, addShortGoal, updateShortGoal, deleteShortGoal } = useData();
 
+  const today = useCurrentDateKey();
   const goal = goals.find(g => g.id === goalId);
   const resolvedGoalId = goal?.id ?? '';
   const [expandedMilestones, setExpandedMilestones] = useState<Set<string>>(new Set());
@@ -39,7 +41,6 @@ export function GoalDetailScreen() {
   const [editReward, setEditReward] = useState(goal?.reward || '');
   const [editStatus, setEditStatus] = useState<'active' | 'future'>(goal?.status === 'future' ? 'future' : 'active');
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
-  const today = new Date().toISOString().split('T')[0];
   const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
     if (!startDate && targetDate && targetDate > today) return 'future';
@@ -124,7 +125,7 @@ export function GoalDetailScreen() {
   const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
   const overallProgress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
   const isCompleted = overallProgress === 100;
-  const formatDate = (value?: string) => value ? new Date(value).toLocaleDateString('en-US') : null;
+  const formatDate = (value?: string) => value ? parseDateKey(value).toLocaleDateString('en-US') : null;
   const startLabel = formatDate(goal.startDate);
   const targetLabel = formatDate(goal.targetDate);
   const dateLabel = startLabel ? `Start ${startLabel}` : targetLabel ?? '';

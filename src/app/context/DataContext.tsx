@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Goal, Task, HeatmapDay, DailyRecord, TopTask, Milestone } from '../types';
 import { useAuth } from './AuthContext';
+import { getLocalDateKey } from '../lib/date';
 
 interface DataContextType {
   goals: Goal[];
@@ -284,7 +285,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const updateDailyRecord = async (date: string, updates: Partial<DailyRecord>) => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateKey();
     
     // Only allow editing today or future dates
     if (date < today) {
@@ -650,7 +651,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateKey();
     
     // Only allow toggling tasks for today or future
     if (task.date < today) {

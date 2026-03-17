@@ -8,12 +8,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
+import { getLocalDateKey, parseDateKey, useCurrentDateKey } from '../lib/date';
 
 const goalPageCacheStore = new Map<string, { items: Goal[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
 let lastGoalViewState: { view: 'active' | 'future' | 'completed'; page: number } = { view: 'active', page: 1 };
 let hasLoadedGoalsOnce = false;
 
 export function GoalsScreen() {
+  const today = useCurrentDateKey();
   const initialQueryKey = JSON.stringify({ status: lastGoalViewState.view, page: lastGoalViewState.page, pageSize: 12 });
   const cachedInitial = goalPageCacheStore.get(initialQueryKey);
   const { goals, fetchGoalsPage, addGoal } = useData();
@@ -32,7 +34,6 @@ export function GoalsScreen() {
   const [newGoalReward, setNewGoalReward] = useState('');
   const [newGoalStatus, setNewGoalStatus] = useState<'active' | 'future'>('active');
 
-  const today = new Date().toISOString().split('T')[0];
   const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
     if (!startDate && targetDate && targetDate > today) return 'future';
@@ -116,7 +117,7 @@ export function GoalsScreen() {
       status: newGoalStatus,
       milestones: [],
       contributionDays: 0,
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: getLocalDateKey(),
     };
 
     await addGoal(createdGoal);
@@ -419,7 +420,7 @@ function GoalCard({ goal, index, onClick }: { goal: Goal; index: number; onClick
   const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
   const progress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
   const formatDate = (value?: string) =>
-    value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
+    value ? parseDateKey(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
   const startLabel = formatDate(goal.startDate);
   const targetLabel = formatDate(goal.targetDate);
   const dateLabel = startLabel ? `Start ${startLabel}` : targetLabel ?? 'No dates';

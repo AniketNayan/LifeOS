@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Task, TaskPriority } from '../types';
+import { getLocalDateKeyWithOffset, useCurrentDateKey } from '../lib/date';
 
 const taskPageCacheStore = new Map<string, { items: Task[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
 let lastTaskViewState: { view: 'all' | 'active' | 'future'; page: number } = { view: 'all', page: 1 };
@@ -15,28 +16,28 @@ let hasLoadedTasksOnce = false;
 
 export function TasksScreen() {
   const { fetchTasksPage, toggleTask, addTask, updateTask, deleteTask, tasks: allTasks } = useData();
+  const today = useCurrentDateKey();
+  const tomorrow = getLocalDateKeyWithOffset(1, today);
+  const initialQueryKey = JSON.stringify({ view: lastTaskViewState.view, page: lastTaskViewState.page, anchorDate: today });
+  const cachedInitial = taskPageCacheStore.get(initialQueryKey);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskView, setTaskView] = useState<'all' | 'active' | 'future'>(lastTaskViewState.view);
-  const initialQueryKey = JSON.stringify({ view: lastTaskViewState.view, page: lastTaskViewState.page });
-  const cachedInitial = taskPageCacheStore.get(initialQueryKey);
   const [visibleTasks, setVisibleTasks] = useState<Task[]>(() => cachedInitial?.items ?? []);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [taskPagination, setTaskPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(() => cachedInitial?.pagination ?? null);
   const [taskPage, setTaskPage] = useState(lastTaskViewState.page);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(hasLoadedTasksOnce);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDate, setNewTaskDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newTaskDate, setNewTaskDate] = useState(today);
   const [newTaskMinutes, setNewTaskMinutes] = useState('30');
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('medium');
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const pageSize = 20;
 
   const lastTaskQueryRef = useRef<string | null>(null);
   const inFlightTaskQueryRef = useRef<string | null>(null);
 
-  const queryKey = useMemo(() => JSON.stringify({ view: taskView, page: taskPage }), [taskView, taskPage]);
+  const queryKey = useMemo(() => JSON.stringify({ view: taskView, page: taskPage, anchorDate: today }), [taskView, taskPage, today]);
 
   const shouldIncludeInView = (task: Task, view: typeof taskView) => {
     if (view === 'active') return task.date === today;
@@ -128,6 +129,10 @@ export function TasksScreen() {
   }, [taskView]);
 
   useEffect(() => {
+    setNewTaskDate((current) => (current < today ? today : current));
+  }, [today]);
+
+  useEffect(() => {
     lastTaskViewState = { view: taskView, page: taskPage };
     if (allTasks.length > 0) {
       hydrateFromAllTasks();
@@ -135,13 +140,13 @@ export function TasksScreen() {
       return;
     }
     void loadTasks({ silent: taskPageCacheStore.has(queryKey) });
-  }, [taskPage, taskView, queryKey]);
+  }, [taskPage, taskView, queryKey, today, tomorrow]);
 
   useEffect(() => {
     if (allTasks.length > 0) {
       hydrateFromAllTasks();
     }
-  }, [allTasks, taskPage, taskView, queryKey]);
+  }, [allTasks, taskPage, taskView, queryKey, today]);
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
   const doneToday = todayTasks.filter(t => t.completed);

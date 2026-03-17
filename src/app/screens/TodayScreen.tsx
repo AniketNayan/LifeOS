@@ -10,6 +10,7 @@ import { Task } from '../types';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { useCurrentDateKey } from '../lib/date';
 
 export function TodayScreen() {
   const { tasks, goals, toggleTask, addTask, getDailyRecord, updateDailyRecord } = useData();
@@ -20,7 +21,7 @@ export function TodayScreen() {
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   const [saveIndicators, setSaveIndicators] = useState<Record<string, boolean>>({});
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = useCurrentDateKey();
   const todayLabel = new Date(`${today}T00:00:00`).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
