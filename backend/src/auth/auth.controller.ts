@@ -3,6 +3,8 @@ import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +28,16 @@ export class AuthController {
   @Post('logout')
   logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.authService.logout(req, res);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Req() req: Request, @Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(req, dto);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Req() req: Request, @Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(req, dto);
   }
 
   @Get('me')

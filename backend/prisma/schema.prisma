@@ -25,6 +25,8 @@ model User {
   passwordHash     String?
   googleId         String?       @unique
   refreshTokenHash String?
+  resetPasswordTokenHash String?
+  resetPasswordTokenExpiresAt DateTime?
   goals            Goal[]
   tasks            Task[]
   dailyRecords     DailyRecord[]

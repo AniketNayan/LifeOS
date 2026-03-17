@@ -3,10 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import sgMail from '@sendgrid/mail';
 import { Response, Request, type CookieOptions } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthRateLimitService } from './auth-rate-limit.service';
 
 type JwtPayload = {
@@ -134,6 +138,80 @@ export class AuthService {
     }
 
     this.clearAuthCookies(res);
+    return { success: true };
+  }
+
+  async forgotPassword(req: Request, dto: ForgotPasswordDto) {
+    const email = dto.email.trim().toLowerCase();
+    const rateLimitKey = this.getRateLimitKey('forgot', req, email);
+    this.authRateLimitService.check(rateLimitKey, 5, 15 * 60 * 1000);
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Always respond with success to avoid user enumeration.
+    if (!user) {
+      this.authRateLimitService.recordFailure(rateLimitKey, 15 * 60 * 1000);
+      return { success: true };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordTokenHash: tokenHash,
+        resetPasswordTokenExpiresAt: expiresAt,
+      },
+    });
+
+    this.authRateLimitService.recordFailure(rateLimitKey, 15 * 60 * 1000);
+
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+
+    await this.sendPasswordResetEmail(email, resetUrl);
+
+    if (this.configService.get<string>('NODE_ENV') !== 'production') {
+      return { success: true, devResetUrl: resetUrl };
+    }
+
+    return { success: true };
+  }
+
+  async resetPassword(req: Request, dto: ResetPasswordDto) {
+    const email = dto.email.trim().toLowerCase();
+    const rateLimitKey = this.getRateLimitKey('reset', req, email);
+    this.authRateLimitService.check(rateLimitKey, 8, 15 * 60 * 1000);
+
+    const tokenHash = crypto.createHash('sha256').update(dto.token).digest('hex');
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email,
+        resetPasswordTokenHash: tokenHash,
+        resetPasswordTokenExpiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      this.authRateLimitService.recordFailure(rateLimitKey, 15 * 60 * 1000);
+      throw new BadRequestException('Reset token is invalid or expired.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        refreshTokenHash: null,
+        resetPasswordTokenHash: null,
+        resetPasswordTokenExpiresAt: null,
+      },
+    });
+
+    this.authRateLimitService.clear(rateLimitKey);
     return { success: true };
   }
 
@@ -345,7 +423,7 @@ export class AuthService {
     });
   }
 
-  private getRateLimitKey(action: 'login' | 'register', req: Request, email: string) {
+  private getRateLimitKey(action: 'login' | 'register' | 'forgot' | 'reset', req: Request, email: string) {
     const forwardedFor = req.headers['x-forwarded-for'];
     const ip = Array.isArray(forwardedFor)
       ? forwardedFor[0]
@@ -354,5 +432,28 @@ export class AuthService {
         : req.ip || 'unknown';
 
     return `${action}:${ip}:${email}`;
+  }
+
+  private async sendPasswordResetEmail(email: string, resetUrl: string) {
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const fromEmail = this.configService.get<string>('EMAIL_FROM');
+
+    if (!apiKey || !fromEmail) {
+      throw new BadRequestException('Email service is not configured.');
+    }
+
+    sgMail.setApiKey(apiKey);
+
+    await sgMail.send({
+      to: email,
+      from: fromEmail,
+      subject: 'Reset your LifeOS password',
+      text: `Reset your password: ${resetUrl}`,
+      html: `
+        <p>You requested a password reset.</p>
+        <p><a href="${resetUrl}">Click here to reset your password</a></p>
+        <p>This link expires in 30 minutes.</p>
+      `,
+    });
   }
 }
