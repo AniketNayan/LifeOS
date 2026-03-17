@@ -382,81 +382,88 @@ export function GoalDetailScreen() {
             <DialogDescription>Keep details consistent across your timeline.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Goal name</label>
-              <Input
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Goal title"
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-              />
-            </div>
-            <div className="space-y-2">
-              <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Description</label>
-              <Textarea
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                placeholder="Why this matters, how you'll measure it..."
-                rows={3}
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-              />
-            </div>
-            <div className="space-y-2">
-              <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</label>
-              <Select value={editStatus} onValueChange={(value) => setEditStatus(value as 'active' | 'future')}>
-                <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active goal</SelectItem>
-                  <SelectItem value="future">Future goal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Timeline</label>
-              <div className="responsive-form-grid">
-                <div className="space-y-1.5">
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start date</span>
-                  <Input
-                    type="date"
-                    aria-label="Start date"
-                    value={editStartDate}
-                    onChange={(e) => {
-                      const nextDate = e.target.value;
-                      setEditStartDate(nextDate);
-                      setEditStatus(computeDefaultStatus(nextDate, editTargetDate));
-                    }}
-                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target date</span>
+            <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="space-y-2">
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Goal name</label>
                 <Input
-                  type="date"
-                  aria-label="Target date"
-                  value={editTargetDate}
-                  onChange={(e) => {
-                    const nextDate = e.target.value;
-                    setEditTargetDate(nextDate);
-                    setEditStatus(computeDefaultStatus(editStartDate, nextDate));
-                  }}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="Goal title"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                 />
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start date is set.</p>
+              <div className="space-y-2">
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Description</label>
+                <Textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Why this matters, how you'll measure it..."
+                  rows={3}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reward</label>
+
+            <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="space-y-2">
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</label>
+                <Select value={editStatus} onValueChange={(value) => setEditStatus(value as 'active' | 'future')}>
+                  <SelectTrigger style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active goal</SelectItem>
+                    <SelectItem value="future">Future goal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Timeline</label>
+                <div className="responsive-form-grid">
+                  <div className="space-y-1.5">
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start date</span>
+                    <Input
+                      type="date"
+                      aria-label="Start date"
+                      value={editStartDate}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setEditStartDate(nextDate);
+                        setEditStatus(computeDefaultStatus(nextDate, editTargetDate));
+                      }}
+                      style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target date</span>
+                    <Input
+                      type="date"
+                      aria-label="Target date"
+                      value={editTargetDate}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setEditTargetDate(nextDate);
+                        setEditStatus(computeDefaultStatus(editStartDate, nextDate));
+                      }}
+                      style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start date is set.</p>
+              </div>
+            </div>
+
+            <div className="app-card-muted p-3 space-y-2" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reward</label>
               <Input
                 value={editReward}
                 onChange={(e) => setEditReward(e.target.value)}
                 placeholder="Reward"
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
               />
             </div>
-            <button onClick={handleSaveEdit} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '44px', fontSize: '14px', fontWeight: 700 }}>
+
+            <button onClick={handleSaveEdit} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '46px', fontSize: '14px', fontWeight: 700 }}>
               Save Changes
             </button>
           </div>

@@ -168,86 +168,93 @@ export function GoalsScreen() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create Goal</DialogTitle>
-              <DialogDescription>Plan the timeline and reward in one clean view.</DialogDescription>
+              <DialogDescription>Set the intent, then lock the timeline and reward.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Goal name</label>
-                <Input
-                  placeholder="Goal title"
-                  value={newGoalTitle}
-                  onChange={(e) => setNewGoalTitle(e.target.value)}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                />
-              </div>
-              <div className="space-y-2">
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Description</label>
-                <Textarea
-                  placeholder="Why this matters, how you'll measure it…"
-                  value={newGoalDescription}
-                  onChange={(e) => setNewGoalDescription(e.target.value)}
-                  rows={3}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                />
-              </div>
-              <div className="space-y-2">
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</label>
-                <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
-                  <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active goal</SelectItem>
-                    <SelectItem value="future">Future goal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Timeline</label>
-                <div className="responsive-form-grid">
-                  <div className="space-y-1.5">
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start date</span>
-                    <Input
-                      type="date"
-                      placeholder="Start date"
-                      aria-label="Start date"
-                      value={newGoalStartDate}
-                      onChange={(e) => {
-                        const nextDate = e.target.value;
-                        setNewGoalStartDate(nextDate);
-                        setNewGoalStatus(computeDefaultStatus(nextDate, newGoalTargetDate));
-                      }}
-                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target date</span>
+              <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                <div className="space-y-2">
+                  <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Goal name</label>
                   <Input
-                    type="date"
-                    placeholder="Target date"
-                    aria-label="Target date"
-                    value={newGoalTargetDate}
-                    onChange={(e) => {
-                      const nextDate = e.target.value;
-                      setNewGoalTargetDate(nextDate);
-                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate));
-                    }}
-                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                    placeholder="Goal title"
+                    value={newGoalTitle}
+                    onChange={(e) => setNewGoalTitle(e.target.value)}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                   />
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start date is set.</p>
+                <div className="space-y-2">
+                  <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Description</label>
+                  <Textarea
+                    placeholder="Why this matters, how you'll measure it…"
+                    value={newGoalDescription}
+                    onChange={(e) => setNewGoalDescription(e.target.value)}
+                    rows={3}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reward</label>
+
+              <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                <div className="space-y-2">
+                  <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</label>
+                  <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
+                    <SelectTrigger style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active goal</SelectItem>
+                      <SelectItem value="future">Future goal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Timeline</label>
+                  <div className="responsive-form-grid">
+                    <div className="space-y-1.5">
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start date</span>
+                      <Input
+                        type="date"
+                        placeholder="Start date"
+                        aria-label="Start date"
+                        value={newGoalStartDate}
+                        onChange={(e) => {
+                          const nextDate = e.target.value;
+                          setNewGoalStartDate(nextDate);
+                          setNewGoalStatus(computeDefaultStatus(nextDate, newGoalTargetDate));
+                        }}
+                        style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target date</span>
+                      <Input
+                        type="date"
+                        placeholder="Target date"
+                        aria-label="Target date"
+                        value={newGoalTargetDate}
+                        onChange={(e) => {
+                          const nextDate = e.target.value;
+                          setNewGoalTargetDate(nextDate);
+                          setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate));
+                        }}
+                        style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                      />
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start date is set.</p>
+                </div>
+              </div>
+
+              <div className="app-card-muted p-3 space-y-2" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reward</label>
                 <Input
                   placeholder="Reward"
                   value={newGoalReward}
                   onChange={(e) => setNewGoalReward(e.target.value)}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.02)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                 />
               </div>
-              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '44px', fontSize: '14px', fontWeight: 700 }}>
+
+              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '46px', fontSize: '14px', fontWeight: 700 }}>
                 Create Goal
               </button>
             </div>
