@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum GoalStatus {
+  active
+  future
+  completed
+}
+
+enum TaskPriority {
+  high
+  medium
+  low
+}
+
+model User {
+  id               String        @id @default(cuid())
+  name             String
+  email            String        @unique
+  passwordHash     String?
+  googleId         String?       @unique
+  refreshTokenHash String?
+  goals            Goal[]
+  tasks            Task[]
+  dailyRecords     DailyRecord[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model Goal {
+  id               String      @id @default(cuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  targetDate       DateTime?
+  reward           String?
+  status           GoalStatus  @default(active)
+  rewardClaimed    Boolean     @default(false)
+  contributionDays Int         @default(0)
+  milestones       Milestone[]
+  tasks            Task[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model Milestone {
+  id          String      @id @default(cuid())
+  goalId      String
+  goal        Goal        @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String
+  shortGoals  ShortGoal[]
+  tasks       Task[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([goalId, createdAt])
+}
+
+model ShortGoal {
+  id            String       @id @default(cuid())
+  milestoneId   String
+  milestone     Milestone    @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  title         String
+  completed     Boolean      @default(false)
+  estimatedTime Int?
+  priority      TaskPriority @default(medium)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([milestoneId, createdAt])
+}
+
+model Task {
+  id            String       @id @default(cuid())
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalId        String?
+  goal          Goal?        @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  milestoneId   String?
+  milestone     Milestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  title         String
+  completed     Boolean      @default(false)
+  estimatedTime Int?
+  priority      TaskPriority @default(medium)
+  date          DateTime
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, completed, date])
+  @@index([goalId, date])
+  @@index([milestoneId, date])
+}
+
+model DailyRecord {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              DateTime
+  mainFocus         String   @default("")
+  topTasks          Json?
+  productivityScore Int      @default(5)
+  deepWorkHours     Float    @default(0)
+  healthDone        Boolean  @default(false)
+  distractionFree   Boolean  @default(false)
+  workNotes         String   @default("")
+  personalThoughts  String   @default("")
+  lessonsLearned    String   @default("")
+  goalContributions Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}

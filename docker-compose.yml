@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: life_os_goals
+      POSTGRES_USER: lifeos_user
+      POSTGRES_PASSWORD: lifeos_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://lifeos_user:lifeos_password@postgres:5432/life_os_goals"
+      JWT_ACCESS_SECRET: "dev-access-secret-key"
+      JWT_REFRESH_SECRET: "dev-refresh-secret-key"
+      FRONTEND_URL: "http://localhost:5173"
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      VITE_API_URL: "http://localhost:3000"
+
+volumes:
+  postgres_data:
