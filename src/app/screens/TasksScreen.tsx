@@ -37,6 +37,20 @@ export function TasksScreen() {
 
   const queryKey = useMemo(() => JSON.stringify({ view: taskView, page: taskPage }), [taskView, taskPage]);
 
+  const shouldIncludeInView = (task: Task, view: typeof taskView) => {
+    if (view === 'pending') return !task.completed && task.date <= today;
+    if (view === 'active') return task.date === today;
+    if (view === 'future') return task.date > today;
+    return true;
+  };
+
+  const updateCacheForView = (items: Task[]) => {
+    taskPageCacheStore.set(queryKey, {
+      items,
+      pagination: taskPagination ?? null,
+    });
+  };
+
   const loadTasks = async (options?: { silent?: boolean }) => {
     try {
       const query =
@@ -133,7 +147,13 @@ export function TasksScreen() {
     setNewTaskPriority('medium');
     setIsAddingTask(false);
 
-    setVisibleTasks((prev) => [createdTask, ...prev].slice(0, 20));
+    if (shouldIncludeInView(createdTask, taskView)) {
+      setVisibleTasks((prev) => {
+        const next = [createdTask, ...prev].slice(0, 20);
+        updateCacheForView(next);
+        return next;
+      });
+    }
     void loadTasks({ silent: true });
   };
 
@@ -155,18 +175,39 @@ export function TasksScreen() {
     setNewTaskMinutes('30');
     setNewTaskPriority('medium');
 
-    setVisibleTasks((prev) => prev.map((task) => task.id === editingTask.id ? { ...task, ...updates } : task));
+    setVisibleTasks((prev) => {
+      const updatedTask = { ...editingTask, ...updates } as Task;
+      let next = prev.map((task) => task.id === editingTask.id ? updatedTask : task);
+      if (!shouldIncludeInView(updatedTask, taskView)) {
+        next = next.filter((task) => task.id !== editingTask.id);
+      }
+      updateCacheForView(next);
+      return next;
+    });
     void loadTasks({ silent: true });
   };
 
   const handleToggleTask = async (taskId: string) => {
-    setVisibleTasks((prev) => prev.map((task) => task.id === taskId ? { ...task, completed: !task.completed } : task));
+    setVisibleTasks((prev) => {
+      const current = prev.find((task) => task.id === taskId);
+      const toggled = current ? { ...current, completed: !current.completed } : null;
+      let next = prev.map((task) => task.id === taskId ? (toggled ?? task) : task);
+      if (toggled && !shouldIncludeInView(toggled, taskView)) {
+        next = next.filter((task) => task.id !== taskId);
+      }
+      updateCacheForView(next);
+      return next;
+    });
     await toggleTask(taskId);
     void loadTasks({ silent: true });
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    setVisibleTasks((prev) => prev.filter((task) => task.id !== taskId));
+    setVisibleTasks((prev) => {
+      const next = prev.filter((task) => task.id !== taskId);
+      updateCacheForView(next);
+      return next;
+    });
     await deleteTask(taskId);
     void loadTasks({ silent: true });
   };
