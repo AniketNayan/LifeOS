@@ -10,14 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Task, TaskPriority } from '../types';
 
 const taskPageCacheStore = new Map<string, { items: Task[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
-let lastTaskViewState: { view: 'all' | 'pending' | 'active' | 'future'; page: number } = { view: 'all', page: 1 };
+let lastTaskViewState: { view: 'all' | 'active' | 'future'; page: number } = { view: 'all', page: 1 };
 let hasLoadedTasksOnce = false;
 
 export function TasksScreen() {
   const { fetchTasksPage, toggleTask, addTask, updateTask, deleteTask, tasks: allTasks } = useData();
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [taskView, setTaskView] = useState<'all' | 'pending' | 'active' | 'future'>(lastTaskViewState.view);
+  const [taskView, setTaskView] = useState<'all' | 'active' | 'future'>(lastTaskViewState.view);
   const initialQueryKey = JSON.stringify({ view: lastTaskViewState.view, page: lastTaskViewState.page });
   const cachedInitial = taskPageCacheStore.get(initialQueryKey);
   const [visibleTasks, setVisibleTasks] = useState<Task[]>(() => cachedInitial?.items ?? []);
@@ -39,7 +39,6 @@ export function TasksScreen() {
   const queryKey = useMemo(() => JSON.stringify({ view: taskView, page: taskPage }), [taskView, taskPage]);
 
   const shouldIncludeInView = (task: Task, view: typeof taskView) => {
-    if (view === 'pending') return !task.completed && task.date <= today;
     if (view === 'active') return task.date === today;
     if (view === 'future') return task.date > today;
     return true;
@@ -53,7 +52,6 @@ export function TasksScreen() {
   };
 
   const buildFilteredTasks = (items: Task[], view: typeof taskView) => {
-    if (view === 'pending') return items.filter(task => !task.completed && task.date <= today);
     if (view === 'active') return items.filter(task => task.date === today);
     if (view === 'future') return items.filter(task => task.date > today);
     return items;
@@ -77,13 +75,11 @@ export function TasksScreen() {
   const loadTasks = async (options?: { silent?: boolean }) => {
     try {
       const query =
-        taskView === 'pending'
-          ? { completed: false, to: today, page: taskPage, pageSize }
-          : taskView === 'active'
-            ? { date: today, page: taskPage, pageSize }
-            : taskView === 'future'
-              ? { from: tomorrow, page: taskPage, pageSize }
-              : { page: taskPage, pageSize };
+        taskView === 'active'
+          ? { date: today, page: taskPage, pageSize }
+          : taskView === 'future'
+            ? { from: tomorrow, page: taskPage, pageSize }
+            : { page: taskPage, pageSize };
 
       if (inFlightTaskQueryRef.current === queryKey) {
         return;
@@ -148,10 +144,8 @@ export function TasksScreen() {
   }, [allTasks, taskPage, taskView, queryKey]);
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
-  const pendingToday = todayTasks.filter(t => !t.completed);
   const doneToday = todayTasks.filter(t => t.completed);
   const futureTasks = visibleTasks.filter(t => t.date > today);
-  const pendingTasks = visibleTasks.filter(t => !t.completed && t.date <= today);
 
   const groupedFutureTasks = Object.entries(
     futureTasks.reduce((acc, task) => {
@@ -267,7 +261,7 @@ export function TasksScreen() {
             <div className="page-header-copy">
               <h1 className="page-header-title">Execution board</h1>
               <p className="page-header-subtitle">
-                Organize what is pending, completed, and coming up next.
+                Organize what is active, completed, and coming up next.
               </p>
             </div>
             <div className="page-header-actions">
@@ -379,13 +373,12 @@ export function TasksScreen() {
           style={{
             padding: '6px',
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gap: '6px',
           }}
         >
           {[
             { key: 'all', label: 'All' },
-            { key: 'pending', label: 'Pending' },
             { key: 'active', label: 'Active' },
             { key: 'future', label: 'Future' },
           ].map((option) => {
@@ -413,7 +406,7 @@ export function TasksScreen() {
 
         {taskView === 'all' && (
           <>
-            <TaskSection title="Pending Today" empty={emptyLabel || 'No pending tasks'} tasks={pendingToday} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
+            <TaskSection title="Today" empty={emptyLabel || 'No tasks for today'} tasks={todayTasks} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
             <TaskSection title="Completed Today" empty={emptyLabel || 'Nothing completed yet'} tasks={doneToday} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
 
             {groupedFutureTasks.length > 0 && (
@@ -442,10 +435,6 @@ export function TasksScreen() {
               </section>
             )}
           </>
-        )}
-
-        {taskView === 'pending' && (
-          <TaskSection title="Pending Tasks" empty={emptyLabel || 'No pending tasks'} tasks={pendingTasks} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
         )}
 
         {taskView === 'active' && (
