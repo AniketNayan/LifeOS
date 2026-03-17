@@ -35,16 +35,14 @@ export function GoalDetailScreen() {
   const [editTitle, setEditTitle] = useState(goal?.title || '');
   const [editDescription, setEditDescription] = useState(goal?.description || '');
   const [editStartDate, setEditStartDate] = useState(goal?.startDate || '');
-  const [editEndDate, setEditEndDate] = useState(goal?.endDate || '');
   const [editTargetDate, setEditTargetDate] = useState(goal?.targetDate || '');
   const [editReward, setEditReward] = useState(goal?.reward || '');
   const [editStatus, setEditStatus] = useState<'active' | 'future'>(goal?.status === 'future' ? 'future' : 'active');
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
   const today = new Date().toISOString().split('T')[0];
-  const computeDefaultStatus = (startDate?: string, endDate?: string, targetDate?: string) => {
+  const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
-    if (!startDate && endDate && endDate > today) return 'future';
-    if (!startDate && !endDate && targetDate && targetDate > today) return 'future';
+    if (!startDate && targetDate && targetDate > today) return 'future';
     return 'active';
   };
 
@@ -54,7 +52,6 @@ export function GoalDetailScreen() {
       title: editTitle,
       description: editDescription,
       startDate: editStartDate || undefined,
-      endDate: editEndDate || undefined,
       targetDate: editTargetDate || undefined,
       reward: editReward || undefined,
       status: editStatus,
@@ -129,11 +126,8 @@ export function GoalDetailScreen() {
   const isCompleted = overallProgress === 100;
   const formatDate = (value?: string) => value ? new Date(value).toLocaleDateString('en-US') : null;
   const startLabel = formatDate(goal.startDate);
-  const endLabel = formatDate(goal.endDate);
   const targetLabel = formatDate(goal.targetDate);
-  const dateLabel = startLabel || endLabel
-    ? `${startLabel ?? 'Start'} → ${endLabel ?? 'End'}`
-    : targetLabel ?? '';
+  const dateLabel = startLabel ? `Start ${startLabel}` : targetLabel ?? '';
 
   return (
     <div className="page-shell">
@@ -158,7 +152,6 @@ export function GoalDetailScreen() {
                       setEditTitle(goal.title);
                       setEditDescription(goal.description);
                       setEditStartDate(goal.startDate || '');
-                      setEditEndDate(goal.endDate || '');
                       setEditTargetDate(goal.targetDate || '');
                       setEditReward(goal.reward || '');
                       setEditStatus(goal.status === 'future' ? 'future' : 'active');
@@ -407,18 +400,7 @@ export function GoalDetailScreen() {
               onChange={(e) => {
                 const nextDate = e.target.value;
                 setEditStartDate(nextDate);
-                setEditStatus(computeDefaultStatus(nextDate, editEndDate, editTargetDate));
-              }}
-              style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-            />
-            <Input
-              type="date"
-              aria-label="End date"
-              value={editEndDate}
-              onChange={(e) => {
-                const nextDate = e.target.value;
-                setEditEndDate(nextDate);
-                setEditStatus(computeDefaultStatus(editStartDate, nextDate, editTargetDate));
+                setEditStatus(computeDefaultStatus(nextDate, editTargetDate));
               }}
               style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
             />
@@ -429,7 +411,7 @@ export function GoalDetailScreen() {
               onChange={(e) => {
                 const nextDate = e.target.value;
                 setEditTargetDate(nextDate);
-                setEditStatus(computeDefaultStatus(editStartDate, editEndDate, nextDate));
+                setEditStatus(computeDefaultStatus(editStartDate, nextDate));
               }}
               style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
             />

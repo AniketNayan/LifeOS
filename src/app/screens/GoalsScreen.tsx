@@ -28,16 +28,14 @@ export function GoalsScreen() {
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalDescription, setNewGoalDescription] = useState('');
   const [newGoalStartDate, setNewGoalStartDate] = useState('');
-  const [newGoalEndDate, setNewGoalEndDate] = useState('');
   const [newGoalTargetDate, setNewGoalTargetDate] = useState('');
   const [newGoalReward, setNewGoalReward] = useState('');
   const [newGoalStatus, setNewGoalStatus] = useState<'active' | 'future'>('active');
 
   const today = new Date().toISOString().split('T')[0];
-  const computeDefaultStatus = (startDate?: string, endDate?: string, targetDate?: string) => {
+  const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
-    if (!startDate && endDate && endDate > today) return 'future';
-    if (!startDate && !endDate && targetDate && targetDate > today) return 'future';
+    if (!startDate && targetDate && targetDate > today) return 'future';
     return 'active';
   };
 
@@ -113,7 +111,6 @@ export function GoalsScreen() {
       title: newGoalTitle,
       description: newGoalDescription,
       startDate: newGoalStartDate || undefined,
-      endDate: newGoalEndDate || undefined,
       targetDate: newGoalTargetDate || undefined,
       reward: newGoalReward || undefined,
       status: newGoalStatus,
@@ -126,7 +123,6 @@ export function GoalsScreen() {
     setNewGoalTitle('');
     setNewGoalDescription('');
     setNewGoalStartDate('');
-    setNewGoalEndDate('');
     setNewGoalTargetDate('');
     setNewGoalReward('');
     setNewGoalStatus('active');
@@ -219,22 +215,7 @@ export function GoalsScreen() {
                       onChange={(e) => {
                         const nextDate = e.target.value;
                         setNewGoalStartDate(nextDate);
-                        setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
-                      }}
-                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>End date</span>
-                    <Input
-                      type="date"
-                      placeholder="End date"
-                      aria-label="End date"
-                      value={newGoalEndDate}
-                      onChange={(e) => {
-                        const nextDate = e.target.value;
-                        setNewGoalEndDate(nextDate);
-                        setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
+                        setNewGoalStatus(computeDefaultStatus(nextDate, newGoalTargetDate));
                       }}
                       style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                     />
@@ -250,12 +231,12 @@ export function GoalsScreen() {
                     onChange={(e) => {
                       const nextDate = e.target.value;
                       setNewGoalTargetDate(nextDate);
-                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
+                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate));
                     }}
                     style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                   />
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start/end are set.</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start date is set.</p>
               </div>
               <div className="space-y-2">
                 <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reward</label>
@@ -433,11 +414,8 @@ function GoalCard({ goal, index, onClick }: { goal: Goal; index: number; onClick
   const formatDate = (value?: string) =>
     value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
   const startLabel = formatDate(goal.startDate);
-  const endLabel = formatDate(goal.endDate);
   const targetLabel = formatDate(goal.targetDate);
-  const dateLabel = startLabel || endLabel
-    ? `${startLabel ?? 'Start'} → ${endLabel ?? 'End'}`
-    : targetLabel ?? 'No dates';
+  const dateLabel = startLabel ? `Start ${startLabel}` : targetLabel ?? 'No dates';
 
   return (
     <button

@@ -76,7 +76,6 @@ const normalizeGoal = (goal: any): Goal => ({
   ...goal,
   createdAt: typeof goal.createdAt === 'string' ? goal.createdAt.split('T')[0] : goal.createdAt,
   startDate: typeof goal.startDate === 'string' ? goal.startDate.split('T')[0] : undefined,
-  endDate: typeof goal.endDate === 'string' ? goal.endDate.split('T')[0] : undefined,
   targetDate: typeof goal.targetDate === 'string' ? goal.targetDate.split('T')[0] : undefined,
   reward: goal.reward || undefined,
   milestones: (goal.milestones || []).map((milestone: any) => ({
@@ -360,7 +359,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
           title: goal.title,
           description: goal.description,
           startDate: goal.startDate,
-          endDate: goal.endDate,
           targetDate: goal.targetDate,
           reward: goal.reward,
           status: goal.status,
