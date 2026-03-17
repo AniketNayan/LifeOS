@@ -3,25 +3,35 @@ import { lazy, Suspense, type ReactNode } from 'react';
 import { Layout } from './Layout';
 import { useAuth } from './context/AuthContext';
 
-const AuthScreen = lazy(() => import('./screens/AuthScreen').then((mod) => ({ default: mod.AuthScreen })));
-const TodayScreen = lazy(() => import('./screens/TodayScreen').then((mod) => ({ default: mod.TodayScreen })));
-const TasksScreen = lazy(() => import('./screens/TasksScreen').then((mod) => ({ default: mod.TasksScreen })));
-const GoalsScreen = lazy(() => import('./screens/GoalsScreen').then((mod) => ({ default: mod.GoalsScreen })));
-const GoalDetailScreen = lazy(() => import('./screens/GoalDetailScreen').then((mod) => ({ default: mod.GoalDetailScreen })));
-const AnalyticsScreen = lazy(() => import('./screens/AnalyticsScreen').then((mod) => ({ default: mod.AnalyticsScreen })));
-const DayDetailScreen = lazy(() => import('./screens/DayDetailScreen').then((mod) => ({ default: mod.DayDetailScreen })));
+const importAuthScreen = () => import('./screens/AuthScreen').then((mod) => ({ default: mod.AuthScreen }));
+const importTodayScreen = () => import('./screens/TodayScreen').then((mod) => ({ default: mod.TodayScreen }));
+const importTasksScreen = () => import('./screens/TasksScreen').then((mod) => ({ default: mod.TasksScreen }));
+const importGoalsScreen = () => import('./screens/GoalsScreen').then((mod) => ({ default: mod.GoalsScreen }));
+const importGoalDetailScreen = () => import('./screens/GoalDetailScreen').then((mod) => ({ default: mod.GoalDetailScreen }));
+const importAnalyticsScreen = () => import('./screens/AnalyticsScreen').then((mod) => ({ default: mod.AnalyticsScreen }));
+const importDayDetailScreen = () => import('./screens/DayDetailScreen').then((mod) => ({ default: mod.DayDetailScreen }));
 
-function LoadingShell() {
-  return (
-    <div className="dark app-shell" style={{ backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'grid', placeItems: 'center', color: 'var(--text-secondary)' }}>
-      Loading...
-    </div>
-  );
+const AuthScreen = lazy(importAuthScreen);
+const TodayScreen = lazy(importTodayScreen);
+const TasksScreen = lazy(importTasksScreen);
+const GoalsScreen = lazy(importGoalsScreen);
+const GoalDetailScreen = lazy(importGoalDetailScreen);
+const AnalyticsScreen = lazy(importAnalyticsScreen);
+const DayDetailScreen = lazy(importDayDetailScreen);
+
+export function prefetchRoutes() {
+  void importAuthScreen();
+  void importTodayScreen();
+  void importTasksScreen();
+  void importGoalsScreen();
+  void importGoalDetailScreen();
+  void importAnalyticsScreen();
+  void importDayDetailScreen();
 }
 
 function LazyScreen({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<LoadingShell />}>
+    <Suspense fallback={null}>
       {children}
     </Suspense>
   );
@@ -31,11 +41,7 @@ function RequireAuth() {
   const { isReady, isAuthenticated } = useAuth();
 
   if (!isReady) {
-    return (
-      <div className="dark app-shell" style={{ backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'grid', placeItems: 'center', color: 'var(--text-secondary)' }}>
-        Loading...
-      </div>
-    );
+    return null;
   }
 
   if (!isAuthenticated) {
@@ -49,11 +55,7 @@ function AuthOnly() {
   const { isReady, isAuthenticated } = useAuth();
 
   if (!isReady) {
-    return (
-      <div className="dark app-shell" style={{ backgroundColor: 'var(--bg)', minHeight: '100vh', display: 'grid', placeItems: 'center', color: 'var(--text-secondary)' }}>
-        Loading...
-      </div>
-    );
+    return null;
   }
 
   if (isAuthenticated) {
