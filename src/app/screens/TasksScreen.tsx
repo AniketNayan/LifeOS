@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Checkbox } from '../components/ui/checkbox';
 import { SettingsButton } from '../components/SettingsButton';
@@ -25,8 +25,10 @@ export function TasksScreen() {
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-  const loadTasks = async () => {
-    setIsLoadingTasks(true);
+  const lastTaskQueryRef = useRef<string | null>(null);
+  const inFlightTaskQueryRef = useRef<string | null>(null);
+
+  const loadTasks = async (options?: { silent?: boolean }) => {
     try {
       const query =
         taskView === 'pending'
@@ -37,10 +39,28 @@ export function TasksScreen() {
               ? { from: tomorrow, page: taskPage, pageSize: 20 }
               : { page: taskPage, pageSize: 20 };
 
+      const queryKey = JSON.stringify(query);
+      if (inFlightTaskQueryRef.current === queryKey) {
+        return;
+      }
+
+      if (lastTaskQueryRef.current === queryKey && visibleTasks.length > 0 && !options?.silent) {
+        return;
+      }
+
+      inFlightTaskQueryRef.current = queryKey;
+      setIsLoadingTasks(!options?.silent && visibleTasks.length === 0);
+
       const { items, pagination } = await fetchTasksPage(query);
-      setVisibleTasks(items);
-      setTaskPagination(pagination ?? null);
+      if (inFlightTaskQueryRef.current === queryKey) {
+        setVisibleTasks(items);
+        setTaskPagination(pagination ?? null);
+        lastTaskQueryRef.current = queryKey;
+      }
     } finally {
+      if (inFlightTaskQueryRef.current) {
+        inFlightTaskQueryRef.current = null;
+      }
       setIsLoadingTasks(false);
     }
   };
@@ -50,7 +70,7 @@ export function TasksScreen() {
   }, [taskView]);
 
   useEffect(() => {
-    void loadTasks();
+    void loadTasks({ silent: visibleTasks.length > 0 });
   }, [taskPage, taskView]);
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
@@ -88,7 +108,7 @@ export function TasksScreen() {
     setIsAddingTask(false);
 
     setVisibleTasks((prev) => [createdTask, ...prev].slice(0, 20));
-    void loadTasks();
+    void loadTasks({ silent: true });
   };
 
   const handleSaveTask = async () => {
@@ -110,19 +130,19 @@ export function TasksScreen() {
     setNewTaskPriority('medium');
 
     setVisibleTasks((prev) => prev.map((task) => task.id === editingTask.id ? { ...task, ...updates } : task));
-    void loadTasks();
+    void loadTasks({ silent: true });
   };
 
   const handleToggleTask = async (taskId: string) => {
     setVisibleTasks((prev) => prev.map((task) => task.id === taskId ? { ...task, completed: !task.completed } : task));
     await toggleTask(taskId);
-    void loadTasks();
+    void loadTasks({ silent: true });
   };
 
   const handleDeleteTask = async (taskId: string) => {
     setVisibleTasks((prev) => prev.filter((task) => task.id !== taskId));
     await deleteTask(taskId);
-    void loadTasks();
+    void loadTasks({ silent: true });
   };
 
   const emptyLabel = useMemo(() => {

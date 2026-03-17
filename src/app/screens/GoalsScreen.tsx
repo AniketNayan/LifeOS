@@ -1,5 +1,5 @@
 import { useData } from '../context/DataContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Calendar, TrendingUp, Plus, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SettingsButton } from '../components/SettingsButton';
@@ -22,13 +22,35 @@ export function GoalsScreen() {
   const [newGoalTargetDate, setNewGoalTargetDate] = useState('');
   const [newGoalReward, setNewGoalReward] = useState('');
 
-  const loadGoals = async () => {
-    setIsLoadingGoals(true);
+  const lastGoalQueryRef = useRef<string | null>(null);
+  const inFlightGoalQueryRef = useRef<string | null>(null);
+
+  const loadGoals = async (options?: { silent?: boolean }) => {
     try {
-      const { items, pagination } = await fetchGoalsPage({ status: goalView, page: goalPage, pageSize: 12 });
-      setVisibleGoals(items);
-      setGoalPagination(pagination ?? null);
+      const query = { status: goalView, page: goalPage, pageSize: 12 };
+      const queryKey = JSON.stringify(query);
+
+      if (inFlightGoalQueryRef.current === queryKey) {
+        return;
+      }
+
+      if (lastGoalQueryRef.current === queryKey && visibleGoals.length > 0 && !options?.silent) {
+        return;
+      }
+
+      inFlightGoalQueryRef.current = queryKey;
+      setIsLoadingGoals(!options?.silent && visibleGoals.length === 0);
+
+      const { items, pagination } = await fetchGoalsPage(query);
+      if (inFlightGoalQueryRef.current === queryKey) {
+        setVisibleGoals(items);
+        setGoalPagination(pagination ?? null);
+        lastGoalQueryRef.current = queryKey;
+      }
     } finally {
+      if (inFlightGoalQueryRef.current) {
+        inFlightGoalQueryRef.current = null;
+      }
       setIsLoadingGoals(false);
     }
   };
@@ -38,7 +60,7 @@ export function GoalsScreen() {
   }, [goalView]);
 
   useEffect(() => {
-    void loadGoals();
+    void loadGoals({ silent: visibleGoals.length > 0 });
   }, [goalPage, goalView]);
 
   const completedCount = goals.filter((g) => g.rewardClaimed || g.status === 'completed').length;
@@ -72,7 +94,7 @@ export function GoalsScreen() {
     if (goalView === 'active') {
       setVisibleGoals((prev) => [createdGoal, ...prev].slice(0, 12));
     }
-    void loadGoals();
+    void loadGoals({ silent: true });
   };
 
   return (
