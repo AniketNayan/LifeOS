@@ -554,8 +554,30 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const shortGoal = milestone?.shortGoals.find((item) => item.id === shortGoalId);
     if (!shortGoal) return;
 
+    const nextCompleted = !shortGoal.completed;
+
+    setGoals((prev) => prev.map((currentGoal) => (
+      currentGoal.id === goalId
+        ? {
+            ...currentGoal,
+            milestones: currentGoal.milestones.map((currentMilestone) => (
+              currentMilestone.id === milestoneId
+                ? {
+                    ...currentMilestone,
+                    shortGoals: currentMilestone.shortGoals.map((currentShortGoal) => (
+                      currentShortGoal.id === shortGoalId
+                        ? { ...currentShortGoal, completed: nextCompleted }
+                        : currentShortGoal
+                    )),
+                  }
+                : currentMilestone
+            )),
+          }
+        : currentGoal
+    )));
+
     await updateShortGoal(goalId, milestoneId, shortGoalId, {
-      completed: !shortGoal.completed,
+      completed: nextCompleted,
     });
   };
 
