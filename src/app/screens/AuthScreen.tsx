@@ -188,7 +188,7 @@ export function AuthScreen() {
                 borderRadius: '14px',
                 backgroundColor: 'rgba(255,255,255,0.02)',
                 border: '1px solid rgba(255,255,255,0.06)',
-                marginBottom: '20px',
+                marginBottom: '18px',
               }}
             >
               <ModeButton active={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
@@ -212,8 +212,8 @@ export function AuthScreen() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '10px',
-                      backgroundColor: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.08)',
+                      backgroundColor: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.10)',
                       color: 'var(--text-primary)',
                       fontWeight: 600,
                     }}
@@ -222,19 +222,7 @@ export function AuthScreen() {
                     <span>Continue with Google</span>
                   </button>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      color: 'var(--text-muted)',
-                      fontSize: '12px',
-                    }}
-                  >
-                    <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
-                    <span>or</span>
-                    <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
-                  </div>
+                  <DividerLabel />
                 </>
               )}
 
@@ -317,24 +305,26 @@ export function AuthScreen() {
               )}
 
               {mode === 'login' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('forgot');
-                    setError('');
-                    setInfo('');
-                    setDevResetUrl('');
-                  }}
-                  style={{
-                    textAlign: 'left',
-                    fontSize: '12px',
-                    color: 'var(--text-muted)',
-                    background: 'transparent',
-                    width: '100%',
-                  }}
-                >
-                  Forgot password?
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Trouble signing in?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode('forgot');
+                      setError('');
+                      setInfo('');
+                      setDevResetUrl('');
+                    }}
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      background: 'transparent',
+                    }}
+                  >
+                    Reset password
+                  </button>
+                </div>
               )}
 
               {error && (
@@ -405,7 +395,7 @@ export function AuthScreen() {
               <button
                 type="submit"
                 className="primary-button w-full rounded-xl transition-all duration-150"
-                style={{ height: '48px', fontWeight: 700, marginTop: '6px' }}
+                style={{ height: '48px', fontWeight: 700, marginTop: '4px' }}
               >
                 {copy.submit}
               </button>
@@ -489,6 +479,24 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
     >
       {children}
     </button>
+  );
+}
+
+function DividerLabel() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        color: 'var(--text-muted)',
+        fontSize: '12px',
+      }}
+    >
+      <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.08)', flex: 1 }} />
+      <span>or</span>
+      <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.08)', flex: 1 }} />
+    </div>
   );
 }
 
