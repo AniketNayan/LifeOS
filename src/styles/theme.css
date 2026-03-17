@@ -471,6 +471,9 @@
     transition: color 220ms ease, transform 220ms ease, opacity 220ms ease;
     position: relative;
     z-index: 1;
+    gap: 6px;
+    padding: 2px 4px;
+    min-width: 0;
   }
 
   .nav-selector {
@@ -478,6 +481,7 @@
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
+    column-gap: 4px;
   }
 
   .nav-selector-pill {
@@ -503,6 +507,7 @@
     border-radius: 8px;
     border: 1px solid transparent;
     transition: background-color 240ms ease, border-color 240ms ease, transform 240ms ease, box-shadow 240ms ease;
+    flex-shrink: 0;
   }
 
   .nav-tab-active .nav-tab-icon {

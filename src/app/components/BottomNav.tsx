@@ -46,7 +46,7 @@ export function BottomNav() {
               <span className="nav-tab-icon">
                 <Icon size={17} strokeWidth={2.1} />
               </span>
-              <span style={{ fontSize: '13px', letterSpacing: '0.01em', fontWeight: isActive ? 600 : 500, lineHeight: 1, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '12px', letterSpacing: '0.01em', fontWeight: isActive ? 600 : 500, lineHeight: 1.1, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {tab.label}
               </span>
             </button>
