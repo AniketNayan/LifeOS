@@ -185,9 +185,10 @@ export function AuthScreen() {
                 gridTemplateColumns: '1fr 1fr',
                 gap: '6px',
                 padding: '4px',
-                borderRadius: '14px',
-                backgroundColor: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px',
+                backgroundColor: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
                 marginBottom: '18px',
               }}
             >
@@ -469,12 +470,13 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className="rounded-[10px] transition-all duration-150"
       style={{
-        height: '36px',
+        height: '38px',
         fontSize: '12px',
         fontWeight: 700,
-        color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-        backgroundColor: active ? 'rgba(255,255,255,0.05)' : 'transparent',
-        border: active ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+        color: active ? 'var(--text-primary)' : 'rgba(148,163,184,0.9)',
+        backgroundColor: active ? 'rgba(56,189,248,0.12)' : 'transparent',
+        border: active ? '1px solid rgba(56,189,248,0.35)' : '1px solid transparent',
+        boxShadow: active ? '0 6px 18px rgba(56,189,248,0.15)' : 'none',
       }}
     >
       {children}
@@ -511,14 +513,14 @@ function IconToggle({ onClick, label, active }: { onClick: () => void; label: st
         top: '50%',
         right: '10px',
         transform: 'translateY(-50%)',
-        width: '28px',
-        height: '28px',
+        width: '30px',
+        height: '30px',
         display: 'grid',
         placeItems: 'center',
-        borderRadius: '8px',
-        backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-        border: '1px solid rgba(255,255,255,0.08)',
-        color: 'var(--text-secondary)',
+        borderRadius: '10px',
+        backgroundColor: active ? 'rgba(56,189,248,0.16)' : 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        color: active ? '#bae6fd' : 'rgba(148,163,184,0.9)',
       }}
     >
       {active ? <EyeOffIcon /> : <EyeIcon />}
