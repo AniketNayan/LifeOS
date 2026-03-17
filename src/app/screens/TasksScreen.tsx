@@ -145,6 +145,7 @@ export function TasksScreen() {
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
   const doneToday = todayTasks.filter(t => t.completed);
+  const pendingToday = todayTasks.filter(t => !t.completed);
   const futureTasks = visibleTasks.filter(t => t.date > today);
 
   const groupedFutureTasks = Object.entries(
@@ -406,7 +407,7 @@ export function TasksScreen() {
 
         {taskView === 'all' && (
           <>
-            <TaskSection title="Today" empty={emptyLabel || 'No tasks for today'} tasks={todayTasks} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
+            <TaskSection title="Today" empty={emptyLabel || 'No tasks for today'} tasks={pendingToday} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
             <TaskSection title="Completed Today" empty={emptyLabel || 'Nothing completed yet'} tasks={doneToday} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
 
             {groupedFutureTasks.length > 0 && (
@@ -439,7 +440,7 @@ export function TasksScreen() {
 
         {taskView === 'active' && (
           <>
-            <TaskSection title="Today" empty={emptyLabel || 'No tasks for today'} tasks={todayTasks} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
+            <TaskSection title="Today" empty={emptyLabel || 'No tasks for today'} tasks={pendingToday} onToggle={handleToggleTask} onEdit={openEditTask} onDelete={handleDeleteTask} />
           </>
         )}
 
