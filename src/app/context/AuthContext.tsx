@@ -15,7 +15,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (name: string, email: string, password: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
-  forgotPassword: (email: string) => Promise<AuthResult>;
+  forgotPassword: (email: string) => Promise<AuthResult & { devResetUrl?: string }>;
   resetPassword: (email: string, token: string, newPassword: string) => Promise<AuthResult>;
   getGoogleAuthUrl: () => Promise<{ ok: true; url: string } | { ok: false; error: string }>;
 };
@@ -144,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const forgotPassword = async (email: string): Promise<AuthResult> => {
+  const forgotPassword = async (email: string): Promise<AuthResult & { devResetUrl?: string }> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
@@ -159,7 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { ok: false, error: await parseError(response) };
       }
 
-      return { ok: true };
+      const data = await response.json() as { devResetUrl?: string };
+      return { ok: true, devResetUrl: data.devResetUrl };
     } catch {
       return { ok: false, error: 'Unable to send reset email.' };
     }

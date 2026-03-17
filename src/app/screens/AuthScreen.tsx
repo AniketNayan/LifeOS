@@ -14,6 +14,7 @@ export function AuthScreen() {
   const [resetToken, setResetToken] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const [devResetUrl, setDevResetUrl] = useState('');
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -90,6 +91,7 @@ export function AuthScreen() {
         return;
       }
       setInfo('Check your email for a reset link.');
+      setDevResetUrl(result.devResetUrl ?? '');
       return;
     }
 
@@ -108,6 +110,7 @@ export function AuthScreen() {
       setPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setDevResetUrl('');
       return;
     }
 
@@ -292,7 +295,12 @@ export function AuthScreen() {
               {mode === 'login' && (
                 <button
                   type="button"
-                  onClick={() => { setMode('forgot'); setError(''); setInfo(''); }}
+                  onClick={() => {
+                    setMode('forgot');
+                    setError('');
+                    setInfo('');
+                    setDevResetUrl('');
+                  }}
                   style={{
                     textAlign: 'left',
                     fontSize: '12px',
@@ -335,6 +343,22 @@ export function AuthScreen() {
                 </div>
               )}
 
+              {devResetUrl && mode === 'forgot' && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+                    border: '1px solid rgba(56, 189, 248, 0.18)',
+                    color: '#7dd3fc',
+                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    fontSize: '12px',
+                    wordBreak: 'break-all',
+                  }}
+                >
+                  Dev reset link: {devResetUrl}
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="primary-button w-full rounded-xl transition-all duration-150"
@@ -366,6 +390,7 @@ export function AuthScreen() {
                   }
                   setError('');
                   setInfo('');
+                  setDevResetUrl('');
                 }}
                 style={{
                   fontSize: '13px',

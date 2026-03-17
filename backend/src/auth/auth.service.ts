@@ -171,12 +171,13 @@ export class AuthService {
     const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
     const resetUrl = `${frontendUrl}/auth?token=${token}&email=${encodeURIComponent(email)}`;
 
-    await this.sendPasswordResetEmail(email, resetUrl);
+    const isProd = this.configService.get<string>('NODE_ENV') === 'production';
 
-    if (this.configService.get<string>('NODE_ENV') !== 'production') {
+    if (!isProd) {
       return { success: true, devResetUrl: resetUrl };
     }
 
+    await this.sendPasswordResetEmail(email, resetUrl);
     return { success: true };
   }
 
