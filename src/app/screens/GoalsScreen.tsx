@@ -8,15 +8,22 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 
+const goalPageCacheStore = new Map<string, { items: Goal[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
+let lastGoalViewState: { view: 'active' | 'future' | 'completed'; page: number } = { view: 'active', page: 1 };
+let hasLoadedGoalsOnce = false;
+
 export function GoalsScreen() {
+  const initialQueryKey = JSON.stringify({ status: lastGoalViewState.view, page: lastGoalViewState.page, pageSize: 12 });
+  const cachedInitial = goalPageCacheStore.get(initialQueryKey);
   const { goals, fetchGoalsPage, addGoal } = useData();
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
-  const [goalView, setGoalView] = useState<'active' | 'future' | 'completed'>('active');
-  const [visibleGoals, setVisibleGoals] = useState<Goal[]>([]);
+  const [goalView, setGoalView] = useState<'active' | 'future' | 'completed'>(lastGoalViewState.view);
+  const [visibleGoals, setVisibleGoals] = useState<Goal[]>(() => cachedInitial?.items ?? []);
   const [isLoadingGoals, setIsLoadingGoals] = useState(false);
-  const [goalPagination, setGoalPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(null);
-  const [goalPage, setGoalPage] = useState(1);
+  const [goalPagination, setGoalPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(() => cachedInitial?.pagination ?? null);
+  const [goalPage, setGoalPage] = useState(lastGoalViewState.page);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(hasLoadedGoalsOnce);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalDescription, setNewGoalDescription] = useState('');
   const [newGoalTargetDate, setNewGoalTargetDate] = useState('');
@@ -24,7 +31,6 @@ export function GoalsScreen() {
 
   const lastGoalQueryRef = useRef<string | null>(null);
   const inFlightGoalQueryRef = useRef<string | null>(null);
-  const goalPageCache = useRef<Record<string, { items: Goal[]; pagination: typeof goalPagination }>>({});
 
   const queryKey = useMemo(() => JSON.stringify({ status: goalView, page: goalPage, pageSize: 12 }), [goalView, goalPage]);
 
@@ -34,11 +40,15 @@ export function GoalsScreen() {
         return;
       }
 
-      const cached = goalPageCache.current[queryKey];
+      const cached = goalPageCacheStore.get(queryKey);
       if (cached && !options?.silent) {
         setVisibleGoals(cached.items);
         setGoalPagination(cached.pagination ?? null);
         lastGoalQueryRef.current = queryKey;
+        if (!hasLoadedGoalsOnce) {
+          hasLoadedGoalsOnce = true;
+          setHasLoadedOnce(true);
+        }
         return;
       }
 
@@ -47,14 +57,18 @@ export function GoalsScreen() {
       }
 
       inFlightGoalQueryRef.current = queryKey;
-      setIsLoadingGoals(!options?.silent && visibleGoals.length === 0);
+      setIsLoadingGoals(!options?.silent && visibleGoals.length === 0 && !goalPageCacheStore.has(queryKey));
 
       const { items, pagination } = await fetchGoalsPage({ status: goalView, page: goalPage, pageSize: 12 });
       if (inFlightGoalQueryRef.current === queryKey) {
         setVisibleGoals(items);
         setGoalPagination(pagination ?? null);
-        goalPageCache.current[queryKey] = { items, pagination: pagination ?? null };
+        goalPageCacheStore.set(queryKey, { items, pagination: pagination ?? null });
         lastGoalQueryRef.current = queryKey;
+        if (!hasLoadedGoalsOnce) {
+          hasLoadedGoalsOnce = true;
+          setHasLoadedOnce(true);
+        }
       }
     } finally {
       if (inFlightGoalQueryRef.current) {
@@ -69,7 +83,8 @@ export function GoalsScreen() {
   }, [goalView]);
 
   useEffect(() => {
-    void loadGoals({ silent: Boolean(goalPageCache.current[queryKey]) });
+    lastGoalViewState = { view: goalView, page: goalPage };
+    void loadGoals({ silent: goalPageCacheStore.has(queryKey) });
   }, [goalPage, goalView, queryKey]);
 
   const completedCount = goals.filter((g) => g.rewardClaimed || g.status === 'completed').length;
@@ -200,9 +215,9 @@ export function GoalsScreen() {
         })}
       </div>
 
-      {goalView === 'active' && <GoalLane title="Active Goals" goals={activeGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals ? 'Loading goals...' : 'No active goals'} />}
-      {goalView === 'future' && <GoalLane title="Future Goals" goals={futureGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals ? 'Loading goals...' : 'No future goals'} />}
-      {goalView === 'completed' && <GoalLane title="Completed Goals" goals={completedGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals ? 'Loading goals...' : 'No completed goals'} />}
+      {goalView === 'active' && <GoalLane title="Active Goals" goals={activeGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals && !hasLoadedOnce ? 'Loading goals...' : 'No active goals'} />}
+      {goalView === 'future' && <GoalLane title="Future Goals" goals={futureGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals && !hasLoadedOnce ? 'Loading goals...' : 'No future goals'} />}
+      {goalView === 'completed' && <GoalLane title="Completed Goals" goals={completedGoals} onOpen={(id) => navigate(`/goals/${id}`)} empty={isLoadingGoals && !hasLoadedOnce ? 'Loading goals...' : 'No completed goals'} />}
 
       <GoalPaginationControls
         page={goalPagination?.page ?? goalPage}
