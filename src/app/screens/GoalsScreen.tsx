@@ -1,5 +1,5 @@
 import { useData } from '../context/DataContext';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Calendar, TrendingUp, Plus, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SettingsButton } from '../components/SettingsButton';
@@ -24,13 +24,21 @@ export function GoalsScreen() {
 
   const lastGoalQueryRef = useRef<string | null>(null);
   const inFlightGoalQueryRef = useRef<string | null>(null);
+  const goalPageCache = useRef<Record<string, { items: Goal[]; pagination: typeof goalPagination }>>({});
+
+  const queryKey = useMemo(() => JSON.stringify({ status: goalView, page: goalPage, pageSize: 12 }), [goalView, goalPage]);
 
   const loadGoals = async (options?: { silent?: boolean }) => {
     try {
-      const query = { status: goalView, page: goalPage, pageSize: 12 };
-      const queryKey = JSON.stringify(query);
-
       if (inFlightGoalQueryRef.current === queryKey) {
+        return;
+      }
+
+      const cached = goalPageCache.current[queryKey];
+      if (cached && !options?.silent) {
+        setVisibleGoals(cached.items);
+        setGoalPagination(cached.pagination ?? null);
+        lastGoalQueryRef.current = queryKey;
         return;
       }
 
@@ -41,10 +49,11 @@ export function GoalsScreen() {
       inFlightGoalQueryRef.current = queryKey;
       setIsLoadingGoals(!options?.silent && visibleGoals.length === 0);
 
-      const { items, pagination } = await fetchGoalsPage(query);
+      const { items, pagination } = await fetchGoalsPage({ status: goalView, page: goalPage, pageSize: 12 });
       if (inFlightGoalQueryRef.current === queryKey) {
         setVisibleGoals(items);
         setGoalPagination(pagination ?? null);
+        goalPageCache.current[queryKey] = { items, pagination: pagination ?? null };
         lastGoalQueryRef.current = queryKey;
       }
     } finally {
@@ -60,8 +69,8 @@ export function GoalsScreen() {
   }, [goalView]);
 
   useEffect(() => {
-    void loadGoals({ silent: visibleGoals.length > 0 });
-  }, [goalPage, goalView]);
+    void loadGoals({ silent: Boolean(goalPageCache.current[queryKey]) });
+  }, [goalPage, goalView, queryKey]);
 
   const completedCount = goals.filter((g) => g.rewardClaimed || g.status === 'completed').length;
   const activeCount = goals.filter((g) => !g.rewardClaimed && g.status === 'active').length;
