@@ -73,6 +73,8 @@ export class GoalsService {
         userId,
         title: dto.title.trim(),
         description: dto.description.trim(),
+        startDate: dto.startDate ? new Date(dto.startDate) : null,
+        endDate: dto.endDate ? new Date(dto.endDate) : null,
         targetDate: dto.targetDate ? new Date(dto.targetDate) : null,
         reward: dto.reward?.trim() || null,
         status: dto.status || 'active',
@@ -89,6 +91,8 @@ export class GoalsService {
       data: {
         ...(dto.title !== undefined ? { title: dto.title.trim() } : {}),
         ...(dto.description !== undefined ? { description: dto.description.trim() } : {}),
+        ...(dto.startDate !== undefined ? { startDate: dto.startDate ? new Date(dto.startDate) : null } : {}),
+        ...(dto.endDate !== undefined ? { endDate: dto.endDate ? new Date(dto.endDate) : null } : {}),
         ...(dto.targetDate !== undefined ? { targetDate: dto.targetDate ? new Date(dto.targetDate) : null } : {}),
         ...(dto.reward !== undefined ? { reward: dto.reward?.trim() || null } : {}),
         ...(dto.status !== undefined ? { status: dto.status } : {}),

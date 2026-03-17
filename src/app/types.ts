@@ -51,6 +51,8 @@ export interface Goal {
   id: string;
   title: string;
   description: string;
+  startDate?: string;
+  endDate?: string;
   targetDate?: string;
   reward?: string;
   status: 'active' | 'future' | 'completed';

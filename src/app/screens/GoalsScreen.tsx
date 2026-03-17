@@ -27,9 +27,19 @@ export function GoalsScreen() {
   const [hasLoadedOnce, setHasLoadedOnce] = useState(hasLoadedGoalsOnce);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalDescription, setNewGoalDescription] = useState('');
+  const [newGoalStartDate, setNewGoalStartDate] = useState('');
+  const [newGoalEndDate, setNewGoalEndDate] = useState('');
   const [newGoalTargetDate, setNewGoalTargetDate] = useState('');
   const [newGoalReward, setNewGoalReward] = useState('');
   const [newGoalStatus, setNewGoalStatus] = useState<'active' | 'future'>('active');
+
+  const today = new Date().toISOString().split('T')[0];
+  const computeDefaultStatus = (startDate?: string, endDate?: string, targetDate?: string) => {
+    if (startDate && startDate > today) return 'future';
+    if (!startDate && endDate && endDate > today) return 'future';
+    if (!startDate && !endDate && targetDate && targetDate > today) return 'future';
+    return 'active';
+  };
 
   const lastGoalQueryRef = useRef<string | null>(null);
   const inFlightGoalQueryRef = useRef<string | null>(null);
@@ -102,6 +112,8 @@ export function GoalsScreen() {
       id: `g${Date.now()}`,
       title: newGoalTitle,
       description: newGoalDescription,
+      startDate: newGoalStartDate || undefined,
+      endDate: newGoalEndDate || undefined,
       targetDate: newGoalTargetDate || undefined,
       reward: newGoalReward || undefined,
       status: newGoalStatus,
@@ -113,6 +125,8 @@ export function GoalsScreen() {
     await addGoal(createdGoal);
     setNewGoalTitle('');
     setNewGoalDescription('');
+    setNewGoalStartDate('');
+    setNewGoalEndDate('');
     setNewGoalTargetDate('');
     setNewGoalReward('');
     setNewGoalStatus('active');
@@ -174,13 +188,34 @@ export function GoalsScreen() {
               </Select>
               <Input
                 type="date"
+                aria-label="Start date"
+                value={newGoalStartDate}
+                onChange={(e) => {
+                  const nextDate = e.target.value;
+                  setNewGoalStartDate(nextDate);
+                  setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
+                }}
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+              />
+              <Input
+                type="date"
+                aria-label="End date"
+                value={newGoalEndDate}
+                onChange={(e) => {
+                  const nextDate = e.target.value;
+                  setNewGoalEndDate(nextDate);
+                  setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
+                }}
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+              />
+              <Input
+                type="date"
+                aria-label="Target date"
                 value={newGoalTargetDate}
                 onChange={(e) => {
                   const nextDate = e.target.value;
                   setNewGoalTargetDate(nextDate);
-                  if (nextDate) {
-                    setNewGoalStatus(nextDate > new Date().toISOString().split('T')[0] ? 'future' : 'active');
-                  }
+                  setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
                 }}
                 style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
               />
@@ -349,6 +384,14 @@ function GoalCard({ goal, index, onClick }: { goal: Goal; index: number; onClick
   const totalShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.length, 0);
   const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
   const progress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
+  const formatDate = (value?: string) =>
+    value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : null;
+  const startLabel = formatDate(goal.startDate);
+  const endLabel = formatDate(goal.endDate);
+  const targetLabel = formatDate(goal.targetDate);
+  const dateLabel = startLabel || endLabel
+    ? `${startLabel ?? 'Start'} → ${endLabel ?? 'End'}`
+    : targetLabel ?? 'No dates';
 
   return (
     <button
@@ -375,7 +418,7 @@ function GoalCard({ goal, index, onClick }: { goal: Goal; index: number; onClick
 
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <GoalMetaChip icon={<TrendingUp size={11} />} label={`${goal.milestones.length} milestone${goal.milestones.length === 1 ? '' : 's'}`} />
-        <GoalMetaChip icon={<Calendar size={11} />} label={goal.targetDate ? new Date(goal.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No target'} />
+        <GoalMetaChip icon={<Calendar size={11} />} label={dateLabel} />
         <GoalMetaChip icon={<Award size={11} />} label={goal.reward ? 'Reward set' : 'No reward'} />
       </div>
 

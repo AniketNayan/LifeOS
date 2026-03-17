@@ -34,16 +34,27 @@ export function GoalDetailScreen() {
   const [showRewardBurst, setShowRewardBurst] = useState(false);
   const [editTitle, setEditTitle] = useState(goal?.title || '');
   const [editDescription, setEditDescription] = useState(goal?.description || '');
+  const [editStartDate, setEditStartDate] = useState(goal?.startDate || '');
+  const [editEndDate, setEditEndDate] = useState(goal?.endDate || '');
   const [editTargetDate, setEditTargetDate] = useState(goal?.targetDate || '');
   const [editReward, setEditReward] = useState(goal?.reward || '');
   const [editStatus, setEditStatus] = useState<'active' | 'future'>(goal?.status === 'future' ? 'future' : 'active');
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
+  const today = new Date().toISOString().split('T')[0];
+  const computeDefaultStatus = (startDate?: string, endDate?: string, targetDate?: string) => {
+    if (startDate && startDate > today) return 'future';
+    if (!startDate && endDate && endDate > today) return 'future';
+    if (!startDate && !endDate && targetDate && targetDate > today) return 'future';
+    return 'active';
+  };
 
   const handleSaveEdit = () => {
     if (!resolvedGoalId || !editTitle.trim()) return;
     updateGoal(goal.id, {
       title: editTitle,
       description: editDescription,
+      startDate: editStartDate || undefined,
+      endDate: editEndDate || undefined,
       targetDate: editTargetDate || undefined,
       reward: editReward || undefined,
       status: editStatus,
@@ -116,6 +127,13 @@ export function GoalDetailScreen() {
   const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
   const overallProgress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
   const isCompleted = overallProgress === 100;
+  const formatDate = (value?: string) => value ? new Date(value).toLocaleDateString('en-US') : null;
+  const startLabel = formatDate(goal.startDate);
+  const endLabel = formatDate(goal.endDate);
+  const targetLabel = formatDate(goal.targetDate);
+  const dateLabel = startLabel || endLabel
+    ? `${startLabel ?? 'Start'} → ${endLabel ?? 'End'}`
+    : targetLabel ?? '';
 
   return (
     <div className="page-shell">
@@ -139,6 +157,8 @@ export function GoalDetailScreen() {
                     onClick={() => {
                       setEditTitle(goal.title);
                       setEditDescription(goal.description);
+                      setEditStartDate(goal.startDate || '');
+                      setEditEndDate(goal.endDate || '');
                       setEditTargetDate(goal.targetDate || '');
                       setEditReward(goal.reward || '');
                       setEditStatus(goal.status === 'future' ? 'future' : 'active');
@@ -169,10 +189,10 @@ export function GoalDetailScreen() {
       <div className="space-y-4">
         <div className="app-card p-4">
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            {goal.targetDate && (
+            {dateLabel && (
               <div className="metric-pill">
                 <Calendar size={11} />
-                <span>{new Date(goal.targetDate).toLocaleDateString('en-US')}</span>
+                <span>{dateLabel}</span>
               </div>
             )}
             <div className="metric-pill">
@@ -382,13 +402,34 @@ export function GoalDetailScreen() {
             </Select>
             <Input
               type="date"
+              aria-label="Start date"
+              value={editStartDate}
+              onChange={(e) => {
+                const nextDate = e.target.value;
+                setEditStartDate(nextDate);
+                setEditStatus(computeDefaultStatus(nextDate, editEndDate, editTargetDate));
+              }}
+              style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+            />
+            <Input
+              type="date"
+              aria-label="End date"
+              value={editEndDate}
+              onChange={(e) => {
+                const nextDate = e.target.value;
+                setEditEndDate(nextDate);
+                setEditStatus(computeDefaultStatus(editStartDate, nextDate, editTargetDate));
+              }}
+              style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+            />
+            <Input
+              type="date"
+              aria-label="Target date"
               value={editTargetDate}
               onChange={(e) => {
                 const nextDate = e.target.value;
                 setEditTargetDate(nextDate);
-                if (nextDate) {
-                  setEditStatus(nextDate > new Date().toISOString().split('T')[0] ? 'future' : 'active');
-                }
+                setEditStatus(computeDefaultStatus(editStartDate, editEndDate, nextDate));
               }}
               style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
             />
