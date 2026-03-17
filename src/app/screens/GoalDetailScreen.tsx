@@ -26,6 +26,7 @@ export function GoalDetailScreen() {
   const { goals, toggleShortGoal, claimReward, updateGoal, deleteGoal, addMilestone, deleteMilestone, addShortGoal, updateShortGoal, deleteShortGoal } = useData();
 
   const goal = goals.find(g => g.id === goalId);
+  const resolvedGoalId = goal?.id ?? '';
   const [expandedMilestones, setExpandedMilestones] = useState<Set<string>>(new Set());
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,17 +38,8 @@ export function GoalDetailScreen() {
   const [editReward, setEditReward] = useState(goal?.reward || '');
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
 
-  if (!goal) {
-    return <div className="page-shell" style={{ paddingTop: '24px', color: 'var(--text-primary)' }}>Goal not found</div>;
-  }
-
-  const totalShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.length, 0);
-  const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
-  const overallProgress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
-  const isCompleted = overallProgress === 100;
-
   const handleSaveEdit = () => {
-    if (!editTitle.trim()) return;
+    if (!resolvedGoalId || !editTitle.trim()) return;
     updateGoal(goal.id, {
       title: editTitle,
       description: editDescription,
@@ -58,7 +50,7 @@ export function GoalDetailScreen() {
   };
 
   const handleAddMilestone = () => {
-    if (!newMilestoneTitle.trim()) return;
+    if (!resolvedGoalId || !newMilestoneTitle.trim()) return;
     const milestone: Milestone = {
       id: `m${Date.now()}`,
       title: newMilestoneTitle,
@@ -71,6 +63,7 @@ export function GoalDetailScreen() {
   };
 
   const handleClaimReward = () => {
+    if (!resolvedGoalId) return;
     setShowRewardBurst(true);
     claimReward(goal.id);
     window.setTimeout(() => setShowRewardBurst(false), 1200);
@@ -89,24 +82,38 @@ export function GoalDetailScreen() {
   }, []);
 
   const handleDeleteMilestone = useCallback((milestoneId: string) => {
-    deleteMilestone(goal.id, milestoneId);
-  }, [deleteMilestone, goal.id]);
+    if (!resolvedGoalId) return;
+    deleteMilestone(resolvedGoalId, milestoneId);
+  }, [deleteMilestone, resolvedGoalId]);
 
   const handleToggleShortGoal = useCallback((milestoneId: string, shortGoalId: string) => {
-    toggleShortGoal(goal.id, milestoneId, shortGoalId);
-  }, [goal.id, toggleShortGoal]);
+    if (!resolvedGoalId) return;
+    toggleShortGoal(resolvedGoalId, milestoneId, shortGoalId);
+  }, [resolvedGoalId, toggleShortGoal]);
 
   const handleAddShortGoal = useCallback((milestoneId: string, shortGoal: Milestone['shortGoals'][number]) => {
-    addShortGoal(goal.id, milestoneId, shortGoal);
-  }, [addShortGoal, goal.id]);
+    if (!resolvedGoalId) return;
+    addShortGoal(resolvedGoalId, milestoneId, shortGoal);
+  }, [addShortGoal, resolvedGoalId]);
 
   const handleUpdateShortGoal = useCallback((milestoneId: string, shortGoalId: string, updates: Partial<Milestone['shortGoals'][number]>) => {
-    updateShortGoal(goal.id, milestoneId, shortGoalId, updates);
-  }, [goal.id, updateShortGoal]);
+    if (!resolvedGoalId) return;
+    updateShortGoal(resolvedGoalId, milestoneId, shortGoalId, updates);
+  }, [resolvedGoalId, updateShortGoal]);
 
   const handleDeleteShortGoal = useCallback((milestoneId: string, shortGoalId: string) => {
-    deleteShortGoal(goal.id, milestoneId, shortGoalId);
-  }, [deleteShortGoal, goal.id]);
+    if (!resolvedGoalId) return;
+    deleteShortGoal(resolvedGoalId, milestoneId, shortGoalId);
+  }, [deleteShortGoal, resolvedGoalId]);
+
+  if (!goal) {
+    return <div className="page-shell" style={{ paddingTop: '24px', color: 'var(--text-primary)' }}>Goal not found</div>;
+  }
+
+  const totalShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.length, 0);
+  const completedShortGoals = goal.milestones.reduce((sum, m) => sum + m.shortGoals.filter(sg => sg.completed).length, 0);
+  const overallProgress = totalShortGoals > 0 ? (completedShortGoals / totalShortGoals) * 100 : 0;
+  const isCompleted = overallProgress === 100;
 
   return (
     <div className="page-shell">
