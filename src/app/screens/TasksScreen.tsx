@@ -70,49 +70,59 @@ export function TasksScreen() {
   const handleAddTask = async () => {
     if (!newTaskTitle.trim()) return;
 
-    await addTask({
+    const createdTask: Task = {
       id: `t${Date.now()}`,
       title: newTaskTitle.trim(),
       completed: false,
       estimatedTime: newTaskMinutes ? Number(newTaskMinutes) : undefined,
       priority: newTaskPriority,
       date: newTaskDate,
-    });
+    };
+
+    await addTask(createdTask);
 
     setNewTaskTitle('');
     setNewTaskDate(today);
     setNewTaskMinutes('30');
     setNewTaskPriority('medium');
     setIsAddingTask(false);
-    await loadTasks();
+
+    setVisibleTasks((prev) => [createdTask, ...prev].slice(0, 20));
+    void loadTasks();
   };
 
   const handleSaveTask = async () => {
     if (!editingTask || !newTaskTitle.trim()) return;
 
-    await updateTask(editingTask.id, {
+    const updates = {
       title: newTaskTitle.trim(),
       date: newTaskDate,
       estimatedTime: newTaskMinutes ? Number(newTaskMinutes) : undefined,
       priority: newTaskPriority,
-    });
+    };
+
+    await updateTask(editingTask.id, updates);
 
     setEditingTask(null);
     setNewTaskTitle('');
     setNewTaskDate(today);
     setNewTaskMinutes('30');
     setNewTaskPriority('medium');
-    await loadTasks();
+
+    setVisibleTasks((prev) => prev.map((task) => task.id === editingTask.id ? { ...task, ...updates } : task));
+    void loadTasks();
   };
 
   const handleToggleTask = async (taskId: string) => {
+    setVisibleTasks((prev) => prev.map((task) => task.id === taskId ? { ...task, completed: !task.completed } : task));
     await toggleTask(taskId);
-    await loadTasks();
+    void loadTasks();
   };
 
   const handleDeleteTask = async (taskId: string) => {
+    setVisibleTasks((prev) => prev.filter((task) => task.id !== taskId));
     await deleteTask(taskId);
-    await loadTasks();
+    void loadTasks();
   };
 
   const emptyLabel = useMemo(() => {
@@ -474,6 +484,10 @@ function PaginationControls({
   onNext: () => void;
 }) {
   if (isLoading) {
+    return null;
+  }
+
+  if (totalPages <= 1) {
     return null;
   }
 

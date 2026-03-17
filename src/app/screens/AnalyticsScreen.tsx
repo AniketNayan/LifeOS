@@ -339,24 +339,6 @@ export function AnalyticsScreen() {
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-3 gap-3">
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Less</span>
-              <div className="flex items-center gap-1.5">
-                {[0, 3, 6, 9].map((level) => (
-                  <div
-                    key={level}
-                    className="rounded-[3px]"
-                    style={{
-                      width: '11px',
-                      height: '11px',
-                      backgroundColor: getIntensity(level),
-                      border: level === 0 ? '1px solid rgba(255,255,255,0.04)' : '1px solid transparent',
-                    }}
-                  />
-                ))}
-              </div>
-              <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>More</span>
-            </div>
           </div>
         </section>
 

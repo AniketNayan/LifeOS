@@ -50,7 +50,7 @@ export function GoalsScreen() {
 
   const handleCreateGoal = async () => {
     if (!newGoalTitle.trim()) return;
-    await addGoal({
+    const createdGoal: Goal = {
       id: `g${Date.now()}`,
       title: newGoalTitle,
       description: newGoalDescription,
@@ -60,13 +60,19 @@ export function GoalsScreen() {
       milestones: [],
       contributionDays: 0,
       createdAt: new Date().toISOString().split('T')[0],
-    });
+    };
+
+    await addGoal(createdGoal);
     setNewGoalTitle('');
     setNewGoalDescription('');
     setNewGoalTargetDate('');
     setNewGoalReward('');
     setIsCreating(false);
-    await loadGoals();
+
+    if (goalView === 'active') {
+      setVisibleGoals((prev) => [createdGoal, ...prev].slice(0, 12));
+    }
+    void loadGoals();
   };
 
   return (
@@ -195,6 +201,10 @@ function GoalPaginationControls({
   onNext: () => void;
 }) {
   if (isLoading) {
+    return null;
+  }
+
+  if (totalPages <= 1) {
     return null;
   }
 
