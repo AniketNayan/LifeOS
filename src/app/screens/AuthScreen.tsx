@@ -15,6 +15,9 @@ export function AuthScreen() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [devResetUrl, setDevResetUrl] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -259,35 +262,56 @@ export function AuthScreen() {
 
               {(mode === 'login' || mode === 'register') && (
                 <Field label="Password">
-                  <Input
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Enter your password"
-                    type="password"
-                    style={{ height: '46px' }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <Input
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="Enter your password"
+                      type={showPassword ? 'text' : 'password'}
+                      style={{ height: '46px', paddingRight: '44px' }}
+                    />
+                    <IconToggle
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      label={showPassword ? 'Hide password' : 'Show password'}
+                      active={showPassword}
+                    />
+                  </div>
                 </Field>
               )}
 
               {mode === 'reset' && (
                 <>
                   <Field label="New password">
-                    <Input
-                      value={newPassword}
-                      onChange={(event) => setNewPassword(event.target.value)}
-                      placeholder="Enter a new password"
-                      type="password"
-                      style={{ height: '46px' }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <Input
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder="Enter a new password"
+                        type={showNewPassword ? 'text' : 'password'}
+                        style={{ height: '46px', paddingRight: '44px' }}
+                      />
+                      <IconToggle
+                        onClick={() => setShowNewPassword((prev) => !prev)}
+                        label={showNewPassword ? 'Hide password' : 'Show password'}
+                        active={showNewPassword}
+                      />
+                    </div>
                   </Field>
                   <Field label="Confirm password">
-                    <Input
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      placeholder="Confirm your new password"
-                      type="password"
-                      style={{ height: '46px' }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <Input
+                        value={confirmPassword}
+                        onChange={(event) => setConfirmPassword(event.target.value)}
+                        placeholder="Confirm your new password"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        style={{ height: '46px', paddingRight: '44px' }}
+                      />
+                      <IconToggle
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        active={showConfirmPassword}
+                      />
+                    </div>
                   </Field>
                 </>
               )}
@@ -352,10 +376,29 @@ export function AuthScreen() {
                     borderRadius: '12px',
                     padding: '10px 12px',
                     fontSize: '12px',
-                    wordBreak: 'break-all',
                   }}
                 >
-                  Dev reset link: {devResetUrl}
+                  <div style={{ marginBottom: '6px', fontWeight: 600 }}>Dev reset link</div>
+                  <button
+                    type="button"
+                    onClick={() => window.open(devResetUrl, '_blank', 'noreferrer')}
+                    className="rounded-lg transition-all duration-150"
+                    style={{
+                      width: '100%',
+                      height: '38px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                      border: '1px solid rgba(56, 189, 248, 0.25)',
+                      color: '#bae6fd',
+                      fontWeight: 600,
+                      fontSize: '12px',
+                    }}
+                  >
+                    Open reset link
+                  </button>
                 </div>
               )}
 
@@ -446,6 +489,54 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
     >
       {children}
     </button>
+  );
+}
+
+function IconToggle({ onClick, label, active }: { onClick: () => void; label: string; active: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        right: '10px',
+        transform: 'translateY(-50%)',
+        width: '28px',
+        height: '28px',
+        display: 'grid',
+        placeItems: 'center',
+        borderRadius: '8px',
+        backgroundColor: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+        border: '1px solid rgba(255,255,255,0.08)',
+        color: 'var(--text-secondary)',
+      }}
+    >
+      {active ? <EyeOffIcon /> : <EyeIcon />}
+    </button>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 5c5 0 9.3 3.1 11 7-1.7 3.9-6 7-11 7S2.7 15.9 1 12c1.7-3.9 6-7 11-7Zm0 2c-3.7 0-6.9 2-8.6 5 1.7 3 4.9 5 8.6 5s6.9-2 8.6-5c-1.7-3-4.9-5-8.6-5Zm0 2.5A3.5 3.5 0 1 1 8.5 13 3.5 3.5 0 0 1 12 9.5Zm0 2A1.5 1.5 0 1 0 13.5 13 1.5 1.5 0 0 0 12 11.5Z"
+      />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="m3 5.3 1.4-1.4 16.3 16.3-1.4 1.4-3.1-3.1A11.3 11.3 0 0 1 12 19c-5 0-9.3-3.1-11-7a12.7 12.7 0 0 1 4.2-5.1L3 5.3ZM7 9.3a3.5 3.5 0 0 0 4.6 4.6L7 9.3ZM12 7c1.3 0 2.6.3 3.8.8l-1.6 1.6a3.5 3.5 0 0 0-4.8 4.8L7.8 16A9.4 9.4 0 0 1 3.4 12C5.1 9 8.3 7 12 7Zm9.6 5c-.5.9-1.2 1.8-2 2.6l-1.5-1.5c.6-.6 1.1-1.2 1.5-1.8-1.7-3-4.9-5-8.6-5-.8 0-1.6.1-2.3.3L7 5.2A10.6 10.6 0 0 1 12 5c5 0 9.3 3.1 11 7Z"
+      />
+    </svg>
   );
 }
 
