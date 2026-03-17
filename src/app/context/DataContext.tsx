@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Goal, Task, HeatmapDay, DailyRecord, TopTask, Milestone } from '../types';
 import { useAuth } from './AuthContext';
 
@@ -131,6 +131,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(() => createDefaultState().tasks);
   const [dailyRecords, setDailyRecords] = useState<Record<string, DailyRecord>>(() => createDefaultState().dailyRecords);
   const [isHydrated, setIsHydrated] = useState(false);
+  const dailyRecordSyncTimers = useRef<Record<string, number>>({});
+  const pendingDailyRecordPayloads = useRef<Record<string, DailyRecord>>({});
+  const lastSyncedDailyRecordPayloads = useRef<Record<string, string>>({});
   const heatmapData = useMemo(() => buildHeatmapData(tasks, dailyRecords), [tasks, dailyRecords]);
 
   const apiFetch = async <T,>(path: string, init?: RequestInit): Promise<T> => {
@@ -293,27 +296,55 @@ export function DataProvider({ children }: { children: ReactNode }) {
       ...updates,
     };
 
-    const updatedRecord = await apiFetch<any>(`/daily-records/${date}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        mainFocus: payload.mainFocus,
-        topTasks: payload.topTasks,
-        productivityScore: payload.productivityScore,
-        deepWorkHours: payload.deepWorkHours,
-        healthDone: payload.healthDone,
-        distractionFree: payload.distractionFree,
-        workNotes: payload.workNotes,
-        personalThoughts: payload.personalThoughts,
-        lessonsLearned: payload.lessonsLearned,
-        goalContributions: payload.goalContributions,
-      }),
-    });
-
-    const normalized = normalizeDailyRecord(updatedRecord);
     setDailyRecords((prev) => ({
       ...prev,
-      [date]: normalized,
+      [date]: payload,
     }));
+
+    pendingDailyRecordPayloads.current[date] = payload;
+
+    const existingTimer = dailyRecordSyncTimers.current[date];
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+    }
+
+    dailyRecordSyncTimers.current[date] = window.setTimeout(async () => {
+      try {
+        const latestPayload = pendingDailyRecordPayloads.current[date] ?? payload;
+        const serializedPayload = JSON.stringify(latestPayload);
+        if (lastSyncedDailyRecordPayloads.current[date] === serializedPayload) {
+          return;
+        }
+
+        const updatedRecord = await apiFetch<any>(`/daily-records/${date}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            mainFocus: latestPayload.mainFocus,
+            topTasks: latestPayload.topTasks,
+            productivityScore: latestPayload.productivityScore,
+            deepWorkHours: latestPayload.deepWorkHours,
+            healthDone: latestPayload.healthDone,
+            distractionFree: latestPayload.distractionFree,
+            workNotes: latestPayload.workNotes,
+            personalThoughts: latestPayload.personalThoughts,
+            lessonsLearned: latestPayload.lessonsLearned,
+            goalContributions: latestPayload.goalContributions,
+          }),
+        });
+
+        const normalized = normalizeDailyRecord(updatedRecord);
+        lastSyncedDailyRecordPayloads.current[date] = JSON.stringify(normalized);
+        const pendingNow = JSON.stringify(pendingDailyRecordPayloads.current[date] ?? latestPayload);
+        if (pendingNow === serializedPayload) {
+          setDailyRecords((prev) => ({
+            ...prev,
+            [date]: normalized,
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to sync daily record', error);
+      }
+    }, 800);
   };
 
   const addGoal = async (goal: Goal) => {
