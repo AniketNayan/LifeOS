@@ -179,26 +179,51 @@ export function AuthScreen() {
           </div>
 
           <div className="app-card" style={{ padding: '22px' }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '6px',
-                padding: '4px',
-                borderRadius: '16px',
-                backgroundColor: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.15)',
-                marginBottom: '18px',
-              }}
-            >
-              <ModeButton active={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
-                Sign in
-              </ModeButton>
-              <ModeButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
-                Register
-              </ModeButton>
-            </div>
+            {mode === 'login' || mode === 'register' ? (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '6px',
+                  padding: '4px',
+                  borderRadius: '999px',
+                  backgroundColor: 'rgba(255,255,255,0.035)',
+                  border: '1px solid rgba(255,255,255,0.10)',
+                  boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.18)',
+                  marginBottom: '18px',
+                }}
+              >
+                <ModeButton active={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
+                  Sign in
+                </ModeButton>
+                <ModeButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
+                  Register
+                </ModeButton>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('login');
+                  setError('');
+                  setInfo('');
+                  setDevResetUrl('');
+                }}
+                className="rounded-xl transition-all duration-150"
+                style={{
+                  height: '38px',
+                  width: '100%',
+                  marginBottom: '18px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  color: 'var(--text-primary)',
+                  backgroundColor: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                }}
+              >
+                Back to sign in
+              </button>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-3">
               {(mode === 'login' || mode === 'register') && (
@@ -470,13 +495,15 @@ function ModeButton({ active, onClick, children }: { active: boolean; onClick: (
       onClick={onClick}
       className="rounded-[10px] transition-all duration-150"
       style={{
-        height: '38px',
+        height: '40px',
         fontSize: '12px',
         fontWeight: 700,
         color: active ? 'var(--text-primary)' : 'rgba(148,163,184,0.9)',
-        backgroundColor: active ? 'rgba(56,189,248,0.12)' : 'transparent',
+        background: active
+          ? 'linear-gradient(135deg, rgba(56,189,248,0.18), rgba(34,211,238,0.08))'
+          : 'transparent',
         border: active ? '1px solid rgba(56,189,248,0.35)' : '1px solid transparent',
-        boxShadow: active ? '0 6px 18px rgba(56,189,248,0.15)' : 'none',
+        boxShadow: active ? '0 10px 24px rgba(14,116,144,0.25)' : 'none',
       }}
     >
       {children}
@@ -513,14 +540,19 @@ function IconToggle({ onClick, label, active }: { onClick: () => void; label: st
         top: '50%',
         right: '10px',
         transform: 'translateY(-50%)',
-        width: '30px',
-        height: '30px',
+        width: '32px',
+        height: '32px',
         display: 'grid',
         placeItems: 'center',
-        borderRadius: '10px',
-        backgroundColor: active ? 'rgba(56,189,248,0.16)' : 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.12)',
-        color: active ? '#bae6fd' : 'rgba(148,163,184,0.9)',
+        borderRadius: '12px',
+        background: active
+          ? 'linear-gradient(135deg, rgba(56,189,248,0.22), rgba(34,211,238,0.10))'
+          : 'rgba(255,255,255,0.035)',
+        border: '1px solid rgba(255,255,255,0.14)',
+        boxShadow: active
+          ? '0 10px 20px rgba(14,116,144,0.25)'
+          : 'inset 0 0 0 1px rgba(0,0,0,0.15)',
+        color: active ? '#bae6fd' : 'rgba(148,163,184,0.95)',
       }}
     >
       {active ? <EyeOffIcon /> : <EyeIcon />}
