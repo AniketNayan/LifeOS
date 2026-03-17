@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://lifeos-jh2w.onrender.com/$1" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }
