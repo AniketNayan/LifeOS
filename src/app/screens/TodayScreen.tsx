@@ -30,6 +30,8 @@ export function TodayScreen() {
   const todayRecord = getDailyRecord(today);
   const todayTasks = tasks.filter(t => t.date === today);
   const completedCount = todayTasks.filter(t => t.completed).length;
+  const top3Completed = todayRecord.topTasks.filter(task => task.title.trim() && task.completed).length;
+  const top3Total = todayRecord.topTasks.filter(task => task.title.trim()).length;
   const completionRate = todayTasks.length > 0 ? Math.round((completedCount / todayTasks.length) * 100) : 0;
   const activeGoals = goals.filter(g => g.status === 'active');
   const selectedGoal = goals.find(g => g.id === selectedGoalId);
@@ -101,7 +103,7 @@ export function TodayScreen() {
                 <h2 className="compact-section-title">Main Focus</h2>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                {completedCount}/{todayTasks.length} done • score {todayRecord.productivityScore}/10
+                {top3Completed}/{Math.max(top3Total, 1)} top tasks done • score {todayRecord.productivityScore}/10
               </p>
             </div>
             {saveIndicators.mainFocus && (
@@ -128,7 +130,7 @@ export function TodayScreen() {
         <div className="app-card" style={{ padding: '14px 18px' }}>
           <div className="flex items-center justify-between mb-2">
             <h2 className="compact-section-title">Top 3 Tasks</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{todayTasks.length} tasks</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{top3Total}/3 filled</span>
           </div>
           <div className="space-y-2">
             {todayRecord.topTasks.map((task, index) => (
@@ -140,7 +142,7 @@ export function TodayScreen() {
                   borderTop: index === 0 ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.05)',
                 }}
               >
-                <span style={{ fontSize: '12px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>0{index + 1}</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>0{index + 1}</span>
                 <Checkbox
                   checked={task.completed}
                   onCheckedChange={() =>
@@ -166,7 +168,7 @@ export function TodayScreen() {
                     border: '0',
                     color: task.completed ? 'var(--text-secondary)' : 'var(--text-primary)',
                     textDecoration: task.completed ? 'line-through' : 'none',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     padding: '0',
                     height: 'auto',
                     boxShadow: 'none',
