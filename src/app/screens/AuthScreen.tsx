@@ -1,17 +1,52 @@
-import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router';
 import { Input } from '../components/ui/input';
 import { useAuth } from '../context/AuthContext';
 
 export function AuthScreen() {
-  const { isReady, isAuthenticated, login, register, getGoogleAuthUrl } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const { isReady, isAuthenticated, login, register, forgotPassword, resetPassword, getGoogleAuthUrl } = useAuth();
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    const emailParam = searchParams.get('email');
+    if (token && emailParam) {
+      setMode('reset');
+      setEmail(emailParam);
+      setResetToken(token);
+    }
+  }, [searchParams]);
 
   const copy = useMemo(() => {
+    if (mode === 'forgot') {
+      return {
+        title: 'Reset your password',
+        description: 'We will send you a reset link to continue.',
+        submit: 'Send reset link',
+        switchLabel: 'Back to sign in',
+        switchPrompt: 'Remembered your password?',
+      };
+    }
+
+    if (mode === 'reset') {
+      return {
+        title: 'Set a new password',
+        description: 'Choose a new password to secure your account.',
+        submit: 'Update password',
+        switchLabel: 'Back to sign in',
+        switchPrompt: 'Already have access?',
+      };
+    }
+
     if (mode === 'login') {
       return {
         title: 'Welcome back',
@@ -46,6 +81,35 @@ export function AuthScreen() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError('');
+    setInfo('');
+
+    if (mode === 'forgot') {
+      const result = await forgotPassword(email);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setInfo('Check your email for a reset link.');
+      return;
+    }
+
+    if (mode === 'reset') {
+      if (newPassword !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+      const result = await resetPassword(email, resetToken, newPassword);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setInfo('Password updated. You can sign in now.');
+      setMode('login');
+      setPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      return;
+    }
 
     const result = mode === 'login'
       ? await login(email, password)
@@ -130,39 +194,43 @@ export function AuthScreen() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              <button
-                type="button"
-                onClick={handleGoogleAuth}
-                className="w-full rounded-xl transition-all duration-150"
-                style={{
-                  height: '46px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  backgroundColor: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: 'var(--text-primary)',
-                  fontWeight: 600,
-                }}
-              >
-                <GoogleMark />
-                <span>Continue with Google</span>
-              </button>
+              {(mode === 'login' || mode === 'register') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGoogleAuth}
+                    className="w-full rounded-xl transition-all duration-150"
+                    style={{
+                      height: '46px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      backgroundColor: 'rgba(255,255,255,0.02)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      color: 'var(--text-primary)',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <GoogleMark />
+                    <span>Continue with Google</span>
+                  </button>
 
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  color: 'var(--text-muted)',
-                  fontSize: '12px',
-                }}
-              >
-                <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
-                <span>or</span>
-                <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
-              </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      color: 'var(--text-muted)',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
+                    <span>or</span>
+                    <span style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.06)', flex: 1 }} />
+                  </div>
+                </>
+              )}
 
               {mode === 'register' && (
                 <Field label="Full name">
@@ -182,18 +250,60 @@ export function AuthScreen() {
                   placeholder="Enter your email"
                   type="email"
                   style={{ height: '46px' }}
+                  disabled={mode === 'reset'}
                 />
               </Field>
 
-              <Field label="Password">
-                <Input
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Enter your password"
-                  type="password"
-                  style={{ height: '46px' }}
-                />
-              </Field>
+              {(mode === 'login' || mode === 'register') && (
+                <Field label="Password">
+                  <Input
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Enter your password"
+                    type="password"
+                    style={{ height: '46px' }}
+                  />
+                </Field>
+              )}
+
+              {mode === 'reset' && (
+                <>
+                  <Field label="New password">
+                    <Input
+                      value={newPassword}
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      placeholder="Enter a new password"
+                      type="password"
+                      style={{ height: '46px' }}
+                    />
+                  </Field>
+                  <Field label="Confirm password">
+                    <Input
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      placeholder="Confirm your new password"
+                      type="password"
+                      style={{ height: '46px' }}
+                    />
+                  </Field>
+                </>
+              )}
+
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(''); setInfo(''); }}
+                  style={{
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    color: 'var(--text-muted)',
+                    background: 'transparent',
+                    width: '100%',
+                  }}
+                >
+                  Forgot password?
+                </button>
+              )}
 
               {error && (
                 <div
@@ -207,6 +317,21 @@ export function AuthScreen() {
                   }}
                 >
                   {error}
+                </div>
+              )}
+
+              {info && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                    border: '1px solid rgba(34, 197, 94, 0.2)',
+                    color: '#86efac',
+                    borderRadius: '12px',
+                    padding: '10px 12px',
+                    fontSize: '13px',
+                  }}
+                >
+                  {info}
                 </div>
               )}
 
@@ -234,8 +359,13 @@ export function AuthScreen() {
               <button
                 type="button"
                 onClick={() => {
-                  setMode((prev) => prev === 'login' ? 'register' : 'login');
+                  if (mode === 'forgot' || mode === 'reset') {
+                    setMode('login');
+                  } else {
+                    setMode((prev) => (prev === 'login' ? 'register' : 'login'));
+                  }
                   setError('');
+                  setInfo('');
                 }}
                 style={{
                   fontSize: '13px',

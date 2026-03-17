@@ -15,6 +15,8 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (name: string, email: string, password: string) => Promise<AuthResult>;
   logout: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<AuthResult>;
+  resetPassword: (email: string, token: string, newPassword: string) => Promise<AuthResult>;
   getGoogleAuthUrl: () => Promise<{ ok: true; url: string } | { ok: false; error: string }>;
 };
 
@@ -142,6 +144,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const forgotPassword = async (email: string): Promise<AuthResult> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        return { ok: false, error: await parseError(response) };
+      }
+
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Unable to send reset email.' };
+    }
+  };
+
+  const resetPassword = async (email: string, token: string, newPassword: string): Promise<AuthResult> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, token, newPassword }),
+      });
+
+      if (!response.ok) {
+        return { ok: false, error: await parseError(response) };
+      }
+
+      return { ok: true };
+    } catch {
+      return { ok: false, error: 'Unable to reset password.' };
+    }
+  };
+
   const getGoogleAuthUrl = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/google/url`, {
@@ -172,6 +216,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
+    forgotPassword,
+    resetPassword,
     getGoogleAuthUrl,
   }), [currentUser, isReady]);
 
