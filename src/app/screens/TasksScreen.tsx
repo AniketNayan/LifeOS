@@ -9,15 +9,22 @@ import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Task, TaskPriority } from '../types';
 
+const taskPageCacheStore = new Map<string, { items: Task[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
+let lastTaskViewState: { view: 'all' | 'pending' | 'active' | 'future'; page: number } = { view: 'all', page: 1 };
+let hasLoadedTasksOnce = false;
+
 export function TasksScreen() {
   const { fetchTasksPage, toggleTask, addTask, updateTask, deleteTask } = useData();
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [taskView, setTaskView] = useState<'all' | 'pending' | 'active' | 'future'>('all');
-  const [visibleTasks, setVisibleTasks] = useState<Task[]>([]);
+  const [taskView, setTaskView] = useState<'all' | 'pending' | 'active' | 'future'>(lastTaskViewState.view);
+  const initialQueryKey = JSON.stringify({ view: lastTaskViewState.view, page: lastTaskViewState.page });
+  const cachedInitial = taskPageCacheStore.get(initialQueryKey);
+  const [visibleTasks, setVisibleTasks] = useState<Task[]>(() => cachedInitial?.items ?? []);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
-  const [taskPagination, setTaskPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(null);
-  const [taskPage, setTaskPage] = useState(1);
+  const [taskPagination, setTaskPagination] = useState<{ page: number; pageSize: number; total: number; totalPages: number } | null>(() => cachedInitial?.pagination ?? null);
+  const [taskPage, setTaskPage] = useState(lastTaskViewState.page);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(hasLoadedTasksOnce);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState(new Date().toISOString().split('T')[0]);
   const [newTaskMinutes, setNewTaskMinutes] = useState('30');
@@ -27,6 +34,8 @@ export function TasksScreen() {
 
   const lastTaskQueryRef = useRef<string | null>(null);
   const inFlightTaskQueryRef = useRef<string | null>(null);
+
+  const queryKey = useMemo(() => JSON.stringify({ view: taskView, page: taskPage }), [taskView, taskPage]);
 
   const loadTasks = async (options?: { silent?: boolean }) => {
     try {
@@ -39,8 +48,19 @@ export function TasksScreen() {
               ? { from: tomorrow, page: taskPage, pageSize: 20 }
               : { page: taskPage, pageSize: 20 };
 
-      const queryKey = JSON.stringify(query);
       if (inFlightTaskQueryRef.current === queryKey) {
+        return;
+      }
+
+      const cached = taskPageCacheStore.get(queryKey);
+      if (cached && !options?.silent) {
+        setVisibleTasks(cached.items);
+        setTaskPagination(cached.pagination ?? null);
+        lastTaskQueryRef.current = queryKey;
+        if (!hasLoadedTasksOnce) {
+          hasLoadedTasksOnce = true;
+          setHasLoadedOnce(true);
+        }
         return;
       }
 
@@ -49,13 +69,18 @@ export function TasksScreen() {
       }
 
       inFlightTaskQueryRef.current = queryKey;
-      setIsLoadingTasks(!options?.silent && visibleTasks.length === 0);
+      setIsLoadingTasks(!options?.silent && visibleTasks.length === 0 && !taskPageCacheStore.has(queryKey));
 
       const { items, pagination } = await fetchTasksPage(query);
       if (inFlightTaskQueryRef.current === queryKey) {
         setVisibleTasks(items);
         setTaskPagination(pagination ?? null);
+        taskPageCacheStore.set(queryKey, { items, pagination: pagination ?? null });
         lastTaskQueryRef.current = queryKey;
+        if (!hasLoadedTasksOnce) {
+          hasLoadedTasksOnce = true;
+          setHasLoadedOnce(true);
+        }
       }
     } finally {
       if (inFlightTaskQueryRef.current) {
@@ -70,8 +95,9 @@ export function TasksScreen() {
   }, [taskView]);
 
   useEffect(() => {
-    void loadTasks({ silent: visibleTasks.length > 0 });
-  }, [taskPage, taskView]);
+    lastTaskViewState = { view: taskView, page: taskPage };
+    void loadTasks({ silent: taskPageCacheStore.has(queryKey) });
+  }, [taskPage, taskView, queryKey]);
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
   const pendingToday = todayTasks.filter(t => !t.completed);
@@ -146,9 +172,9 @@ export function TasksScreen() {
   };
 
   const emptyLabel = useMemo(() => {
-    if (isLoadingTasks) return 'Loading tasks...';
+    if (isLoadingTasks && !hasLoadedOnce) return 'Loading tasks...';
     return '';
-  }, [isLoadingTasks]);
+  }, [isLoadingTasks, hasLoadedOnce]);
 
   const openEditTask = (task: Task) => {
     setEditingTask(task);

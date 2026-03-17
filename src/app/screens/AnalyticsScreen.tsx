@@ -5,6 +5,9 @@ import { ArrowUpRight, CalendarRange, ChevronLeft, ChevronRight, Flame, Focus, S
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const analyticsCache = new Map<number, AnalyticsOverview>();
+let lastAnalyticsYear = new Date().getFullYear();
+let hasLoadedAnalyticsOnce = false;
 
 type AnalyticsDay = {
   date: string;
@@ -37,10 +40,12 @@ export function AnalyticsScreen() {
   const navigate = useNavigate();
   const { isReady, isAuthenticated } = useAuth();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(null);
+  const cachedInitial = analyticsCache.get(lastAnalyticsYear) ?? null;
+  const [selectedYear, setSelectedYear] = useState(lastAnalyticsYear);
+  const [analytics, setAnalytics] = useState<AnalyticsOverview | null>(cachedInitial);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(hasLoadedAnalyticsOnce);
 
   useEffect(() => {
     if (!isReady || !isAuthenticated) {
@@ -49,7 +54,18 @@ export function AnalyticsScreen() {
     let cancelled = false;
 
     const loadAnalytics = async () => {
-      setIsLoading(true);
+      lastAnalyticsYear = selectedYear;
+      const cached = analyticsCache.get(selectedYear);
+      if (cached) {
+        setAnalytics(cached);
+        if (!hasLoadedAnalyticsOnce) {
+          hasLoadedAnalyticsOnce = true;
+          setHasLoadedOnce(true);
+        }
+        return;
+      }
+
+      setIsLoading(!hasLoadedOnce);
       setLoadError('');
       try {
         const response = await fetch(`${API_BASE_URL}/analytics/overview?year=${selectedYear}`, {
@@ -63,6 +79,11 @@ export function AnalyticsScreen() {
         const data = await response.json() as AnalyticsOverview;
         if (!cancelled) {
           setAnalytics(data);
+          analyticsCache.set(selectedYear, data);
+          if (!hasLoadedAnalyticsOnce) {
+            hasLoadedAnalyticsOnce = true;
+            setHasLoadedOnce(true);
+          }
         }
       } catch {
         if (!cancelled) {
@@ -334,7 +355,7 @@ export function AnalyticsScreen() {
             ) : (
               <div className="app-card-muted p-3">
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  {isLoading ? 'Loading activity…' : 'No activity available for this year.'}
+                  {isLoading && !hasLoadedOnce ? 'Loading activity…' : 'No activity available for this year.'}
                 </p>
               </div>
             )}
