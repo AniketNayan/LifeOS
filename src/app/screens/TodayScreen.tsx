@@ -32,6 +32,8 @@ export function TodayScreen() {
   const completedCount = todayTasks.filter(t => t.completed).length;
   const top3Completed = todayRecord.topTasks.filter(task => task.title.trim() && task.completed).length;
   const top3Total = todayRecord.topTasks.filter(task => task.title.trim()).length;
+  const combinedCompleted = completedCount + top3Completed;
+  const combinedTotal = todayTasks.length + top3Total;
   const completionRate = todayTasks.length > 0 ? Math.round((completedCount / todayTasks.length) * 100) : 0;
   const activeGoals = goals.filter(g => g.status === 'active');
   const selectedGoal = goals.find(g => g.id === selectedGoalId);
@@ -103,7 +105,7 @@ export function TodayScreen() {
                 <h2 className="compact-section-title">Main Focus</h2>
               </div>
               <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                {top3Completed}/{Math.max(top3Total, 1)} top tasks done • score {todayRecord.productivityScore}/10
+                {combinedCompleted}/{Math.max(combinedTotal, 1)} tasks done • score {todayRecord.productivityScore}/10
               </p>
             </div>
             {saveIndicators.mainFocus && (
@@ -261,9 +263,9 @@ export function TodayScreen() {
           </div>
 
           <div className="space-y-1">
-            {todayTasks.length > 0 ? (
-              todayTasks.map(task => <TaskItem key={task.id} task={task} onToggle={toggleTask} />)
-            ) : (
+              {todayTasks.length > 0 ? (
+                todayTasks.map((task, index) => <TaskItem key={task.id} task={task} index={index} onToggle={toggleTask} />)
+              ) : (
               <div className="app-card-muted p-3">
                 <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>No tasks for today</p>
               </div>
@@ -419,7 +421,7 @@ function NoteField({ label, value, saved, onChange }: { label: string; value: st
   );
 }
 
-function TaskItem({ task, onToggle }: { task: Task; onToggle: (id: string) => void }) {
+function TaskItem({ task, onToggle, index }: { task: Task; onToggle: (id: string) => void; index: number }) {
   return (
     <div
       className="flex items-center gap-3 transition-all duration-150"
@@ -428,6 +430,7 @@ function TaskItem({ task, onToggle }: { task: Task; onToggle: (id: string) => vo
         borderTop: '1px solid rgba(255,255,255,0.05)',
       }}
     >
+      <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>{String(index + 1).padStart(2, '0')}</span>
       <Checkbox
         checked={task.completed}
         onCheckedChange={() => onToggle(task.id)}
