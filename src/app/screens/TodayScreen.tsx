@@ -104,12 +104,12 @@ export function TodayScreen() {
                 <Target size={13} style={{ color: 'var(--green-5)' }} />
                 <h2 className="compact-section-title">Main Focus</h2>
               </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginTop: '4px' }}>
                 {combinedCompleted}/{Math.max(combinedTotal, 1)} tasks done • score {todayRecord.productivityScore}/10
               </p>
             </div>
             {saveIndicators.mainFocus && (
-              <span style={{ fontSize: '10px', color: 'var(--green-5)', fontWeight: 600, flexShrink: 0 }}>Saved</span>
+              <span style={{ fontSize: '12px', color: 'var(--green-5)', fontWeight: 600, flexShrink: 0 }}>Saved</span>
             )}
           </div>
           <Input
@@ -123,8 +123,8 @@ export function TodayScreen() {
               backgroundColor: 'rgba(255,255,255,0.02)',
               border: '1px solid rgba(255,255,255,0.06)',
               color: 'var(--text-primary)',
-              fontSize: '14px',
-              padding: '10px 12px',
+              fontSize: '16px',
+              padding: '12px 14px',
             }}
           />
         </div>
@@ -132,7 +132,7 @@ export function TodayScreen() {
         <div className="app-card" style={{ padding: '14px 18px' }}>
           <div className="flex items-center justify-between mb-2">
             <h2 className="compact-section-title">Top 3 Tasks</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{top3Total}/3 filled</span>
+            <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{top3Total}/3 filled</span>
           </div>
           <div className="space-y-2">
             {todayRecord.topTasks.map((task, index) => (
@@ -144,7 +144,7 @@ export function TodayScreen() {
                   borderTop: index === 0 ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.05)',
                 }}
               >
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>0{index + 1}</span>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>0{index + 1}</span>
                 <Checkbox
                   checked={task.completed}
                   onCheckedChange={() =>
@@ -170,7 +170,7 @@ export function TodayScreen() {
                     border: '0',
                     color: task.completed ? 'var(--text-secondary)' : 'var(--text-primary)',
                     textDecoration: task.completed ? 'line-through' : 'none',
-                    fontSize: '13px',
+                    fontSize: '15px',
                     padding: '0',
                     height: 'auto',
                     boxShadow: 'none',
@@ -186,7 +186,7 @@ export function TodayScreen() {
             <h2 className="compact-section-title">Tasks</h2>
             <Dialog open={isAddingTask} onOpenChange={setIsAddingTask}>
               <DialogTrigger asChild>
-                <button className="soft-button rounded-xl px-3 transition-all duration-150" style={{ height: '34px', fontSize: '12px', fontWeight: 600 }}>
+                <button className="soft-button rounded-xl px-3 transition-all duration-150" style={{ height: '38px', fontSize: '14px', fontWeight: 600 }}>
                   <span className="icon-button-label">
                     <Plus size={14} />
                     <span>Add</span>
@@ -267,7 +267,7 @@ export function TodayScreen() {
                 todayTasks.map((task, index) => <TaskItem key={task.id} task={task} index={index} onToggle={toggleTask} />)
               ) : (
               <div className="app-card-muted p-3">
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>No tasks for today</p>
+                <p style={{ fontSize: '16px', color: 'var(--text-muted)' }}>No tasks for today</p>
               </div>
             )}
           </div>
@@ -286,10 +286,10 @@ export function TodayScreen() {
                 <h2 className="compact-section-title" style={{ color: scoreAccent }}>Score</h2>
               </div>
               <div className="flex items-end gap-2 mb-2">
-                <span style={{ fontSize: '20px', fontWeight: 600, color: scoreAccent, lineHeight: 1 }}>
+                <span style={{ fontSize: '22px', fontWeight: 600, color: scoreAccent, lineHeight: 1 }}>
                   {todayRecord.productivityScore}
                 </span>
-                <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>/10</span>
+                <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>/10</span>
               </div>
               <Slider
                 value={[todayRecord.productivityScore]}
@@ -348,9 +348,9 @@ export function TodayScreen() {
                   <div key={goalId} className="app-card-muted p-3">
                     <div className="flex items-center gap-2">
                       <Target size={12} style={{ color: 'var(--green-4)' }} />
-                      <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>{goal.title}</span>
+                      <span style={{ fontSize: '15px', color: 'var(--text-primary)', fontWeight: 600 }}>{goal.title}</span>
                     </div>
-                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                       {goalTasks.length} completed today
                     </p>
                   </div>
@@ -358,7 +358,7 @@ export function TodayScreen() {
               })}
             </div>
           ) : (
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No goal progress today.</p>
+            <p style={{ fontSize: '15px', color: 'var(--text-muted)' }}>No goal progress today.</p>
           )}
         </div>
 
@@ -386,7 +386,7 @@ export function TodayScreen() {
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <div className="flex items-center justify-between">
-      <span style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{label}</span>
+      <span style={{ fontSize: '15px', color: 'var(--text-primary)' }}>{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </div>
   );
@@ -396,8 +396,8 @@ function NoteField({ label, value, saved, onChange }: { label: string; value: st
   return (
     <div style={{ paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
       <div className="flex items-center justify-between mb-2">
-        <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</label>
-        {saved && <span style={{ fontSize: '10px', color: 'var(--green-4)', fontWeight: 600 }}>Saved</span>}
+        <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</label>
+        {saved && <span style={{ fontSize: '12px', color: 'var(--green-4)', fontWeight: 600 }}>Saved</span>}
       </div>
       <Textarea
         placeholder={`${label} notes`}
@@ -410,7 +410,7 @@ function NoteField({ label, value, saved, onChange }: { label: string; value: st
           borderRadius: '12px',
           color: 'var(--text-primary)',
           resize: 'none',
-          fontSize: '13px',
+          fontSize: '15px',
           padding: '12px 14px',
           minHeight: '88px',
           lineHeight: '1.55',
@@ -430,7 +430,7 @@ function TaskItem({ task, onToggle, index }: { task: Task; onToggle: (id: string
         borderTop: '1px solid rgba(255,255,255,0.05)',
       }}
     >
-      <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>{String(index + 1).padStart(2, '0')}</span>
+      <span style={{ fontSize: '13px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>{String(index + 1).padStart(2, '0')}</span>
       <Checkbox
         checked={task.completed}
         onCheckedChange={() => onToggle(task.id)}
@@ -441,17 +441,17 @@ function TaskItem({ task, onToggle, index }: { task: Task; onToggle: (id: string
         }}
       />
       <div className="flex-1 min-w-0">
-        <p style={{ fontSize: '13px', color: 'var(--text-primary)', textDecoration: task.completed ? 'line-through' : 'none', opacity: task.completed ? 0.78 : 1 }}>
+        <p style={{ fontSize: '15px', color: 'var(--text-primary)', textDecoration: task.completed ? 'line-through' : 'none', opacity: task.completed ? 0.78 : 1 }}>
           {task.title}
         </p>
         <div className="flex items-center gap-3 mt-0.5">
           {task.estimatedTime && (
             <div className="flex items-center gap-1">
-              <Clock size={10} style={{ color: 'var(--text-muted)' }} />
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{task.estimatedTime} min</span>
+              <Clock size={12} style={{ color: 'var(--text-muted)' }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{task.estimatedTime} min</span>
             </div>
           )}
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
             {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
           </span>
         </div>
