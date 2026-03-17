@@ -115,10 +115,19 @@ export function GoalsScreen() {
     setNewGoalReward('');
     setIsCreating(false);
 
-    if (goalView === 'active') {
-      setVisibleGoals((prev) => [createdGoal, ...prev].slice(0, 12));
+    if (goalView === 'active' && goalPage === 1) {
+      setVisibleGoals((prev) => {
+        const next = [createdGoal, ...prev].slice(0, 12);
+        goalPageCacheStore.set(queryKey, { items: next, pagination: goalPagination ?? null });
+        return next;
+      });
+      if (goalPagination) {
+        const total = goalPagination.total + 1;
+        const totalPages = Math.max(1, Math.ceil(total / goalPagination.pageSize));
+        setGoalPagination({ ...goalPagination, total, totalPages });
+      }
     }
-    void loadGoals({ silent: true });
+    // Avoid immediate reload so the optimistic item stays visible.
   };
 
   return (
