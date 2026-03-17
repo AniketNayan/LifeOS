@@ -451,13 +451,7 @@ function MilestoneCard({
     : null;
 
   return (
-    <div
-      className="app-card overflow-hidden"
-      style={{
-        borderColor: 'rgba(72,187,120,0.14)',
-        background: 'linear-gradient(180deg, rgba(72,187,120,0.06), rgba(15,20,28,0.86))',
-      }}
-    >
+    <div className="app-card overflow-hidden">
       <div
         role="button"
         tabIndex={0}
@@ -474,19 +468,8 @@ function MilestoneCard({
         <div className="flex-1 text-left min-w-0">
           <div className="flex items-start gap-3 mb-2 min-w-0">
             <Checkbox checked={progress === 100} className="pointer-events-none" style={{ borderColor: progress === 100 ? 'var(--green-4)' : 'var(--divider)', backgroundColor: progress === 100 ? 'var(--green-4)' : 'transparent' }} />
-            <div
-              className="min-w-0 flex-1"
-              style={{
-                borderLeft: '2px solid rgba(72,187,120,0.55)',
-                paddingLeft: '10px',
-              }}
-            >
-              <div style={{ fontSize: '10px', color: 'rgba(72,187,120,0.8)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
-                Milestone
-              </div>
-              <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.25, wordBreak: 'break-word', marginTop: '4px' }}>
-                {milestone.title}
-              </h4>
+            <div className="min-w-0 flex-1">
+              <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.25, wordBreak: 'break-word' }}>{milestone.title}</h4>
             </div>
           </div>
           <div className="ml-7">
@@ -538,14 +521,7 @@ function MilestoneCard({
             </button>
           </div>
           {milestone.shortGoals.length > 0 ? (
-            <div
-              className="app-card-muted overflow-hidden"
-              style={{
-                marginLeft: '22px',
-                borderLeft: '1px dashed rgba(255,255,255,0.14)',
-                paddingLeft: '12px',
-              }}
-            >
+            <div className="app-card-muted overflow-hidden">
               {milestone.shortGoals.map((shortGoal, index) => (
                 <div
                   key={shortGoal.id}
@@ -555,17 +531,6 @@ function MilestoneCard({
                     backgroundColor: 'transparent',
                   }}
                 >
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '999px',
-                      background: shortGoal.completed ? 'var(--green-5)' : 'rgba(255,255,255,0.2)',
-                      boxShadow: shortGoal.completed ? '0 0 0 3px rgba(72,187,120,0.15)' : 'none',
-                      flexShrink: 0,
-                    }}
-                  />
                   <Checkbox
                     checked={shortGoal.completed}
                     disabled={isRewardClaimed}
@@ -589,15 +554,7 @@ function MilestoneCard({
               ))}
             </div>
           ) : (
-            <div
-              className="app-card-muted p-3"
-              style={{
-                textAlign: 'center',
-                marginLeft: '22px',
-                borderLeft: '1px dashed rgba(255,255,255,0.14)',
-                paddingLeft: '12px',
-              }}
-            >
+            <div className="app-card-muted p-3" style={{ textAlign: 'center' }}>
               <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>
                 No tasks yet
               </p>
