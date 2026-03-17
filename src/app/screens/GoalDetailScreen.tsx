@@ -36,6 +36,7 @@ export function GoalDetailScreen() {
   const [editDescription, setEditDescription] = useState(goal?.description || '');
   const [editTargetDate, setEditTargetDate] = useState(goal?.targetDate || '');
   const [editReward, setEditReward] = useState(goal?.reward || '');
+  const [editStatus, setEditStatus] = useState<'active' | 'future'>(goal?.status === 'future' ? 'future' : 'active');
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('');
 
   const handleSaveEdit = () => {
@@ -45,6 +46,7 @@ export function GoalDetailScreen() {
       description: editDescription,
       targetDate: editTargetDate || undefined,
       reward: editReward || undefined,
+      status: editStatus,
     });
     setIsEditing(false);
   };
@@ -139,6 +141,7 @@ export function GoalDetailScreen() {
                       setEditDescription(goal.description);
                       setEditTargetDate(goal.targetDate || '');
                       setEditReward(goal.reward || '');
+                      setEditStatus(goal.status === 'future' ? 'future' : 'active');
                       setIsEditing(true);
                     }}
                     style={{ color: 'var(--text-primary)' }}
@@ -368,7 +371,27 @@ export function GoalDetailScreen() {
           <div className="space-y-3">
             <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Title" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
             <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" rows={3} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
-            <Input type="date" value={editTargetDate} onChange={(e) => setEditTargetDate(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
+            <Select value={editStatus} onValueChange={(value) => setEditStatus(value as 'active' | 'future')}>
+              <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active goal</SelectItem>
+                <SelectItem value="future">Future goal</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              value={editTargetDate}
+              onChange={(e) => {
+                const nextDate = e.target.value;
+                setEditTargetDate(nextDate);
+                if (nextDate) {
+                  setEditStatus(nextDate > new Date().toISOString().split('T')[0] ? 'future' : 'active');
+                }
+              }}
+              style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+            />
             <Input value={editReward} onChange={(e) => setEditReward(e.target.value)} placeholder="Reward" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
             <button onClick={handleSaveEdit} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '42px', fontSize: '14px', fontWeight: 700 }}>
               Save
