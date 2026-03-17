@@ -172,55 +172,89 @@ export function GoalsScreen() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create Goal</DialogTitle>
-              <DialogDescription>Add a new goal and optional reward.</DialogDescription>
+              <DialogDescription>Plan the timeline and reward in one clean view.</DialogDescription>
             </DialogHeader>
-            <div className="space-y-3">
-              <Input placeholder="Goal title" value={newGoalTitle} onChange={(e) => setNewGoalTitle(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
-              <Textarea placeholder="Description" value={newGoalDescription} onChange={(e) => setNewGoalDescription(e.target.value)} rows={3} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
-              <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
-                <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active goal</SelectItem>
-                  <SelectItem value="future">Future goal</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                type="date"
-                aria-label="Start date"
-                value={newGoalStartDate}
-                onChange={(e) => {
-                  const nextDate = e.target.value;
-                  setNewGoalStartDate(nextDate);
-                  setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
-                }}
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-              />
-              <Input
-                type="date"
-                aria-label="End date"
-                value={newGoalEndDate}
-                onChange={(e) => {
-                  const nextDate = e.target.value;
-                  setNewGoalEndDate(nextDate);
-                  setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
-                }}
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-              />
-              <Input
-                type="date"
-                aria-label="Target date"
-                value={newGoalTargetDate}
-                onChange={(e) => {
-                  const nextDate = e.target.value;
-                  setNewGoalTargetDate(nextDate);
-                  setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
-                }}
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-              />
-              <Input placeholder="Reward" value={newGoalReward} onChange={(e) => setNewGoalReward(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
-              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '42px', fontSize: '14px', fontWeight: 700 }}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Goal name</label>
+                <Input
+                  placeholder="Goal title"
+                  value={newGoalTitle}
+                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div className="space-y-2">
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Description</label>
+                <Textarea
+                  placeholder="Why this matters, how you'll measure it…"
+                  value={newGoalDescription}
+                  onChange={(e) => setNewGoalDescription(e.target.value)}
+                  rows={3}
+                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div className="space-y-2">
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</label>
+                <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
+                  <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active goal</SelectItem>
+                    <SelectItem value="future">Future goal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Timeline</label>
+                <div className="responsive-form-grid">
+                  <Input
+                    type="date"
+                    aria-label="Start date"
+                    value={newGoalStartDate}
+                    onChange={(e) => {
+                      const nextDate = e.target.value;
+                      setNewGoalStartDate(nextDate);
+                      setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
+                    }}
+                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                  />
+                  <Input
+                    type="date"
+                    aria-label="End date"
+                    value={newGoalEndDate}
+                    onChange={(e) => {
+                      const nextDate = e.target.value;
+                      setNewGoalEndDate(nextDate);
+                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
+                    }}
+                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                  />
+                </div>
+                <Input
+                  type="date"
+                  aria-label="Target date"
+                  value={newGoalTargetDate}
+                  onChange={(e) => {
+                    const nextDate = e.target.value;
+                    setNewGoalTargetDate(nextDate);
+                    setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
+                  }}
+                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                />
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start/end are set.</p>
+              </div>
+              <div className="space-y-2">
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Reward</label>
+                <Input
+                  placeholder="Reward"
+                  value={newGoalReward}
+                  onChange={(e) => setNewGoalReward(e.target.value)}
+                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '44px', fontSize: '14px', fontWeight: 700 }}>
                 Create Goal
               </button>
             </div>
