@@ -605,6 +605,9 @@ function TaskItem({ task, index, onToggle, onEdit, onDelete }: { task: Task; ind
         borderTop: index === 0 ? '0' : '1px solid rgba(255,255,255,0.05)',
       }}
     >
+      <span style={{ fontSize: '11px', color: 'var(--text-muted)', width: '20px', flexShrink: 0 }}>
+        {String(index + 1).padStart(2, '0')}
+      </span>
       <Checkbox
         checked={task.completed}
         onCheckedChange={() => onToggle(task.id)}
