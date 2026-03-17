@@ -435,8 +435,8 @@ function TaskItem({ task, onToggle, index }: { task: Task; onToggle: (id: string
         checked={task.completed}
         onCheckedChange={() => onToggle(task.id)}
         style={{
-          borderColor: 'var(--divider)',
-          backgroundColor: task.completed ? 'rgba(255,255,255,0.06)' : 'transparent',
+          borderColor: task.completed ? 'var(--green-4)' : 'var(--divider)',
+          backgroundColor: task.completed ? 'var(--green-4)' : 'transparent',
           color: task.completed ? 'var(--text-primary)' : 'inherit',
         }}
       />
