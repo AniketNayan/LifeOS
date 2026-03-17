@@ -25,4 +25,19 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
   },
+  build: {
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return;
+          }
+          const parts = id.split('node_modules/')[1].split('/');
+          const name = parts[0].startsWith('@') ? `${parts[0]}_${parts[1]}` : parts[0];
+          return `vendor_${name}`;
+        },
+      },
+    },
+  },
 })
