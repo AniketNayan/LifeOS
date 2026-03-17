@@ -348,106 +348,186 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const addGoal = async (goal: Goal) => {
-    const createdGoal = await apiFetch<any>('/goals', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: goal.title,
-        description: goal.description,
-        targetDate: goal.targetDate,
-        reward: goal.reward,
-        status: goal.status,
-      }),
-    });
+    const previousGoals = goals;
+    setGoals((prev) => [...prev, goal]);
 
-    setGoals((prev) => [...prev, normalizeGoal(createdGoal)]);
+    try {
+      const createdGoal = await apiFetch<any>('/goals', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: goal.title,
+          description: goal.description,
+          targetDate: goal.targetDate,
+          reward: goal.reward,
+          status: goal.status,
+        }),
+      });
+
+      setGoals((prev) => prev.map((item) => item.id === goal.id ? normalizeGoal(createdGoal) : item));
+    } catch (error) {
+      console.error('Failed to add goal', error);
+      setGoals(previousGoals);
+    }
   };
 
   const updateGoal = async (goalId: string, updates: Partial<Goal>) => {
-    const updatedGoal = await apiFetch<any>(`/goals/${goalId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    });
+    const previousGoals = goals;
+    setGoals((prev) => prev.map((goal) => goal.id === goalId ? { ...goal, ...updates } : goal));
 
-    setGoals((prev) => prev.map((goal) => goal.id === goalId ? normalizeGoal(updatedGoal) : goal));
+    try {
+      const updatedGoal = await apiFetch<any>(`/goals/${goalId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+
+      setGoals((prev) => prev.map((goal) => goal.id === goalId ? normalizeGoal(updatedGoal) : goal));
+    } catch (error) {
+      console.error('Failed to update goal', error);
+      setGoals(previousGoals);
+    }
   };
 
   const deleteGoal = async (goalId: string) => {
-    await apiFetch<{ success: boolean }>(`/goals/${goalId}`, {
-      method: 'DELETE',
-    });
-
+    const previousGoals = goals;
+    const previousTasks = tasks;
     setGoals((prev) => prev.filter((goal) => goal.id !== goalId));
     setTasks((prev) => prev.filter((task) => task.goalId !== goalId));
+
+    try {
+      await apiFetch<{ success: boolean }>(`/goals/${goalId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to delete goal', error);
+      setGoals(previousGoals);
+      setTasks(previousTasks);
+    }
   };
 
   const addMilestone = async (goalId: string, milestone: Milestone) => {
-    const createdMilestone = await apiFetch<any>(`/goals/${goalId}/milestones`, {
-      method: 'POST',
-      body: JSON.stringify({ title: milestone.title }),
-    });
-
+    const previousGoals = goals;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
-        ? { ...goal, milestones: [...goal.milestones, { ...createdMilestone, shortGoals: createdMilestone.shortGoals || [] }] }
+        ? { ...goal, milestones: [...goal.milestones, milestone] }
         : goal
     )));
+
+    try {
+      const createdMilestone = await apiFetch<any>(`/goals/${goalId}/milestones`, {
+        method: 'POST',
+        body: JSON.stringify({ title: milestone.title }),
+      });
+
+      setGoals((prev) => prev.map((goal) => (
+        goal.id === goalId
+          ? {
+              ...goal,
+              milestones: goal.milestones.map((item) => item.id === milestone.id
+                ? { ...createdMilestone, shortGoals: createdMilestone.shortGoals || [] }
+                : item
+              ),
+            }
+          : goal
+      )));
+    } catch (error) {
+      console.error('Failed to add milestone', error);
+      setGoals(previousGoals);
+    }
   };
 
   const updateMilestone = async (goalId: string, milestoneId: string, updates: Partial<Milestone>) => {
-    const updatedMilestone = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    });
-
+    const previousGoals = goals;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
         ? {
             ...goal,
-            milestones: goal.milestones.map((milestone) => milestone.id === milestoneId ? { ...updatedMilestone, shortGoals: updatedMilestone.shortGoals || [] } : milestone),
+            milestones: goal.milestones.map((milestone) => milestone.id === milestoneId ? { ...milestone, ...updates } : milestone),
           }
         : goal
     )));
+
+    try {
+      const updatedMilestone = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+
+      setGoals((prev) => prev.map((goal) => (
+        goal.id === goalId
+          ? {
+              ...goal,
+              milestones: goal.milestones.map((milestone) => milestone.id === milestoneId ? { ...updatedMilestone, shortGoals: updatedMilestone.shortGoals || [] } : milestone),
+            }
+          : goal
+      )));
+    } catch (error) {
+      console.error('Failed to update milestone', error);
+      setGoals(previousGoals);
+    }
   };
 
   const deleteMilestone = async (goalId: string, milestoneId: string) => {
-    await apiFetch<{ success: boolean }>(`/goals/${goalId}/milestones/${milestoneId}`, {
-      method: 'DELETE',
-    });
-
+    const previousGoals = goals;
+    const previousTasks = tasks;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
         ? { ...goal, milestones: goal.milestones.filter((milestone) => milestone.id !== milestoneId) }
         : goal
     )));
     setTasks((prev) => prev.filter((task) => task.milestoneId !== milestoneId));
+
+    try {
+      await apiFetch<{ success: boolean }>(`/goals/${goalId}/milestones/${milestoneId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to delete milestone', error);
+      setGoals(previousGoals);
+      setTasks(previousTasks);
+    }
   };
 
   const addShortGoal = async (goalId: string, milestoneId: string, shortGoal: Milestone['shortGoals'][number]) => {
-    const createdShortGoal = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}/short-goals`, {
-      method: 'POST',
-      body: JSON.stringify(shortGoal),
-    });
-
+    const previousGoals = goals;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
         ? {
             ...goal,
             milestones: goal.milestones.map((milestone) => (
               milestone.id === milestoneId
-                ? { ...milestone, shortGoals: [...milestone.shortGoals, createdShortGoal] }
+                ? { ...milestone, shortGoals: [...milestone.shortGoals, shortGoal] }
                 : milestone
             )),
           }
         : goal
     )));
+
+    try {
+      const createdShortGoal = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}/short-goals`, {
+        method: 'POST',
+        body: JSON.stringify(shortGoal),
+      });
+
+      setGoals((prev) => prev.map((goal) => (
+        goal.id === goalId
+          ? {
+              ...goal,
+              milestones: goal.milestones.map((milestone) => (
+                milestone.id === milestoneId
+                  ? { ...milestone, shortGoals: milestone.shortGoals.map((item) => item.id === shortGoal.id ? createdShortGoal : item) }
+                  : milestone
+              )),
+            }
+          : goal
+      )));
+    } catch (error) {
+      console.error('Failed to add milestone task', error);
+      setGoals(previousGoals);
+    }
   };
 
   const updateShortGoal = async (goalId: string, milestoneId: string, shortGoalId: string, updates: Partial<Milestone['shortGoals'][number]>) => {
-    const updatedShortGoal = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}/short-goals/${shortGoalId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    });
-
+    const previousGoals = goals;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
         ? {
@@ -456,20 +536,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
               milestone.id === milestoneId
                 ? {
                     ...milestone,
-                    shortGoals: milestone.shortGoals.map((shortGoal) => shortGoal.id === shortGoalId ? updatedShortGoal : shortGoal),
+                    shortGoals: milestone.shortGoals.map((shortGoal) => shortGoal.id === shortGoalId ? { ...shortGoal, ...updates } : shortGoal),
                   }
                 : milestone
             )),
           }
         : goal
     )));
+
+    try {
+      const updatedShortGoal = await apiFetch<any>(`/goals/${goalId}/milestones/${milestoneId}/short-goals/${shortGoalId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+
+      setGoals((prev) => prev.map((goal) => (
+        goal.id === goalId
+          ? {
+              ...goal,
+              milestones: goal.milestones.map((milestone) => (
+                milestone.id === milestoneId
+                  ? {
+                      ...milestone,
+                      shortGoals: milestone.shortGoals.map((shortGoal) => shortGoal.id === shortGoalId ? updatedShortGoal : shortGoal),
+                    }
+                  : milestone
+              )),
+            }
+          : goal
+      )));
+    } catch (error) {
+      console.error('Failed to update milestone task', error);
+      setGoals(previousGoals);
+    }
   };
 
   const deleteShortGoal = async (goalId: string, milestoneId: string, shortGoalId: string) => {
-    await apiFetch<{ success: boolean }>(`/goals/${goalId}/milestones/${milestoneId}/short-goals/${shortGoalId}`, {
-      method: 'DELETE',
-    });
-
+    const previousGoals = goals;
     setGoals((prev) => prev.map((goal) => (
       goal.id === goalId
         ? {
@@ -482,32 +585,63 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
         : goal
     )));
+
+    try {
+      await apiFetch<{ success: boolean }>(`/goals/${goalId}/milestones/${milestoneId}/short-goals/${shortGoalId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to delete milestone task', error);
+      setGoals(previousGoals);
+    }
   };
 
   const addTask = async (task: Task) => {
-    const createdTask = await apiFetch<any>('/tasks', {
-      method: 'POST',
-      body: JSON.stringify(task),
-    });
+    const previousTasks = tasks;
+    setTasks((prev) => [...prev, task]);
 
-    setTasks((prev) => [...prev, normalizeTask(createdTask)]);
+    try {
+      const createdTask = await apiFetch<any>('/tasks', {
+        method: 'POST',
+        body: JSON.stringify(task),
+      });
+
+      setTasks((prev) => prev.map((item) => item.id === task.id ? normalizeTask(createdTask) : item));
+    } catch (error) {
+      console.error('Failed to add task', error);
+      setTasks(previousTasks);
+    }
   };
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
-    const updatedTask = await apiFetch<any>(`/tasks/${taskId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    });
+    const previousTasks = tasks;
+    setTasks((prev) => prev.map((task) => task.id === taskId ? { ...task, ...updates } : task));
 
-    setTasks((prev) => prev.map((task) => task.id === taskId ? normalizeTask(updatedTask) : task));
+    try {
+      const updatedTask = await apiFetch<any>(`/tasks/${taskId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updates),
+      });
+
+      setTasks((prev) => prev.map((task) => task.id === taskId ? normalizeTask(updatedTask) : task));
+    } catch (error) {
+      console.error('Failed to update task', error);
+      setTasks(previousTasks);
+    }
   };
 
   const deleteTask = async (taskId: string) => {
-    await apiFetch<{ success: boolean }>(`/tasks/${taskId}`, {
-      method: 'DELETE',
-    });
-
+    const previousTasks = tasks;
     setTasks((prev) => prev.filter((task) => task.id !== taskId));
+
+    try {
+      await apiFetch<{ success: boolean }>(`/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to delete task', error);
+      setTasks(previousTasks);
+    }
   };
 
   const toggleTask = async (taskId: string) => {
@@ -522,13 +656,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const toggledTask = await apiFetch<any>(`/tasks/${taskId}/toggle`, {
-      method: 'POST',
-    });
-    const normalizedTask = normalizeTask(toggledTask);
-    const newCompleted = normalizedTask.completed;
-
-    setTasks((prev) => prev.map((currentTask) => currentTask.id === taskId ? normalizedTask : currentTask));
+    const previousTasks = tasks;
+    const newCompleted = !task.completed;
+    setTasks((prev) => prev.map((currentTask) => currentTask.id === taskId ? { ...currentTask, completed: newCompleted } : currentTask));
 
     // Update heatmap and daily record
     if (task.goalId && task.date === today) {
@@ -545,6 +675,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
       await updateDailyRecord(today, {
         goalContributions: Math.max(record.goalContributions + (newCompleted ? 1 : -1), 0),
       });
+    }
+
+    try {
+      const toggledTask = await apiFetch<any>(`/tasks/${taskId}/toggle`, {
+        method: 'POST',
+      });
+      const normalizedTask = normalizeTask(toggledTask);
+
+      setTasks((prev) => prev.map((currentTask) => currentTask.id === taskId ? normalizedTask : currentTask));
+    } catch (error) {
+      console.error('Failed to toggle task', error);
+      setTasks(previousTasks);
     }
   };
 
@@ -582,11 +724,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const claimReward = async (goalId: string) => {
-    const updatedGoal = await apiFetch<any>(`/goals/${goalId}/claim-reward`, {
-      method: 'POST',
-    });
+    const previousGoals = goals;
+    setGoals((prev) => prev.map((goal) => goal.id === goalId ? { ...goal, rewardClaimed: true } : goal));
 
-    setGoals((prev) => prev.map((goal) => goal.id === goalId ? normalizeGoal(updatedGoal) : goal));
+    try {
+      const updatedGoal = await apiFetch<any>(`/goals/${goalId}/claim-reward`, {
+        method: 'POST',
+      });
+
+      setGoals((prev) => prev.map((goal) => goal.id === goalId ? normalizeGoal(updatedGoal) : goal));
+    } catch (error) {
+      console.error('Failed to claim reward', error);
+      setGoals(previousGoals);
+    }
   };
 
   return (
