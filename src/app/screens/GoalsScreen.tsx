@@ -172,7 +172,18 @@ export function GoalsScreen() {
                   <SelectItem value="future">Future goal</SelectItem>
                 </SelectContent>
               </Select>
-              <Input type="date" value={newGoalTargetDate} onChange={(e) => setNewGoalTargetDate(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
+              <Input
+                type="date"
+                value={newGoalTargetDate}
+                onChange={(e) => {
+                  const nextDate = e.target.value;
+                  setNewGoalTargetDate(nextDate);
+                  if (nextDate) {
+                    setNewGoalStatus(nextDate > new Date().toISOString().split('T')[0] ? 'future' : 'active');
+                  }
+                }}
+                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+              />
               <Input placeholder="Reward" value={newGoalReward} onChange={(e) => setNewGoalReward(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
               <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '42px', fontSize: '14px', fontWeight: 700 }}>
                 Create Goal
