@@ -165,13 +165,13 @@ export function GoalsScreen() {
               </div>
             </div>
           </div>
-          <DialogContent>
+          <DialogContent style={{ maxWidth: '420px', padding: '18px' }}>
             <DialogHeader>
               <DialogTitle>Create Goal</DialogTitle>
               <DialogDescription>Set the intent, then lock the timeline and reward.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="app-card-muted p-2.5 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                 <div className="space-y-2">
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Goal name</label>
                   <Input
@@ -193,7 +193,7 @@ export function GoalsScreen() {
                 </div>
               </div>
 
-              <div className="app-card-muted p-3 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="app-card-muted p-2.5 space-y-3" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                 <div className="space-y-2">
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Status</label>
                   <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
@@ -244,7 +244,7 @@ export function GoalsScreen() {
                 </div>
               </div>
 
-              <div className="app-card-muted p-3 space-y-2" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="app-card-muted p-2.5 space-y-2" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Reward</label>
                 <Input
                   placeholder="Reward"
@@ -254,7 +254,7 @@ export function GoalsScreen() {
                 />
               </div>
 
-              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '46px', fontSize: '14px', fontWeight: 700 }}>
+              <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '42px', fontSize: '14px', fontWeight: 700 }}>
                 Create Goal
               </button>
             </div>
