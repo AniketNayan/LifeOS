@@ -209,40 +209,52 @@ export function GoalsScreen() {
               <div className="space-y-2">
                 <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Timeline</label>
                 <div className="responsive-form-grid">
+                  <div className="space-y-1.5">
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Start date</span>
+                    <Input
+                      type="date"
+                      placeholder="Start date"
+                      aria-label="Start date"
+                      value={newGoalStartDate}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setNewGoalStartDate(nextDate);
+                        setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
+                      }}
+                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>End date</span>
+                    <Input
+                      type="date"
+                      placeholder="End date"
+                      aria-label="End date"
+                      value={newGoalEndDate}
+                      onChange={(e) => {
+                        const nextDate = e.target.value;
+                        setNewGoalEndDate(nextDate);
+                        setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
+                      }}
+                      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target date</span>
                   <Input
                     type="date"
-                    aria-label="Start date"
-                    value={newGoalStartDate}
+                    placeholder="Target date"
+                    aria-label="Target date"
+                    value={newGoalTargetDate}
                     onChange={(e) => {
                       const nextDate = e.target.value;
-                      setNewGoalStartDate(nextDate);
-                      setNewGoalStatus(computeDefaultStatus(nextDate, newGoalEndDate, newGoalTargetDate));
-                    }}
-                    style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                  />
-                  <Input
-                    type="date"
-                    aria-label="End date"
-                    value={newGoalEndDate}
-                    onChange={(e) => {
-                      const nextDate = e.target.value;
-                      setNewGoalEndDate(nextDate);
-                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, nextDate, newGoalTargetDate));
+                      setNewGoalTargetDate(nextDate);
+                      setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
                     }}
                     style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
                   />
                 </div>
-                <Input
-                  type="date"
-                  aria-label="Target date"
-                  value={newGoalTargetDate}
-                  onChange={(e) => {
-                    const nextDate = e.target.value;
-                    setNewGoalTargetDate(nextDate);
-                    setNewGoalStatus(computeDefaultStatus(newGoalStartDate, newGoalEndDate, nextDate));
-                  }}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}
-                />
                 <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Target date is optional if start/end are set.</p>
               </div>
               <div className="space-y-2">
