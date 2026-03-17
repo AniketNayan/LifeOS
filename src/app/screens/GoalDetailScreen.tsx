@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useData } from '../context/DataContext';
 import { ArrowLeft, Calendar, Award, TrendingUp, ChevronDown, ChevronUp, Clock, MoreVertical, Plus, Settings2 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
-import { useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Milestone, TaskPriority } from '../types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -75,6 +75,38 @@ export function GoalDetailScreen() {
     claimReward(goal.id);
     window.setTimeout(() => setShowRewardBurst(false), 1200);
   };
+
+  const handleToggleExpand = useCallback((milestoneId: string) => {
+    setExpandedMilestones(prev => {
+      const next = new Set(prev);
+      if (next.has(milestoneId)) {
+        next.delete(milestoneId);
+      } else {
+        next.add(milestoneId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleDeleteMilestone = useCallback((milestoneId: string) => {
+    deleteMilestone(goal.id, milestoneId);
+  }, [deleteMilestone, goal.id]);
+
+  const handleToggleShortGoal = useCallback((milestoneId: string, shortGoalId: string) => {
+    toggleShortGoal(goal.id, milestoneId, shortGoalId);
+  }, [goal.id, toggleShortGoal]);
+
+  const handleAddShortGoal = useCallback((milestoneId: string, shortGoal: Milestone['shortGoals'][number]) => {
+    addShortGoal(goal.id, milestoneId, shortGoal);
+  }, [addShortGoal, goal.id]);
+
+  const handleUpdateShortGoal = useCallback((milestoneId: string, shortGoalId: string, updates: Partial<Milestone['shortGoals'][number]>) => {
+    updateShortGoal(goal.id, milestoneId, shortGoalId, updates);
+  }, [goal.id, updateShortGoal]);
+
+  const handleDeleteShortGoal = useCallback((milestoneId: string, shortGoalId: string) => {
+    deleteShortGoal(goal.id, milestoneId, shortGoalId);
+  }, [deleteShortGoal, goal.id]);
 
   return (
     <div className="page-shell">
@@ -161,22 +193,14 @@ export function GoalDetailScreen() {
               <MilestoneCard
                 key={milestone.id}
                 milestone={milestone}
-                goalId={goal.id}
                 isRewardClaimed={Boolean(goal.rewardClaimed)}
                 isExpanded={expandedMilestones.has(milestone.id)}
-                onToggleExpand={() => {
-                  setExpandedMilestones(prev => {
-                    const next = new Set(prev);
-                    if (next.has(milestone.id)) next.delete(milestone.id);
-                    else next.add(milestone.id);
-                    return next;
-                  });
-                }}
-                onToggleShortGoal={toggleShortGoal}
-                onAddShortGoal={addShortGoal}
-                onUpdateShortGoal={updateShortGoal}
-                onDeleteShortGoal={deleteShortGoal}
-                onDeleteMilestone={() => deleteMilestone(goal.id, milestone.id)}
+                onToggleExpand={handleToggleExpand}
+                onToggleShortGoal={handleToggleShortGoal}
+                onAddShortGoal={handleAddShortGoal}
+                onUpdateShortGoal={handleUpdateShortGoal}
+                onDeleteShortGoal={handleDeleteShortGoal}
+                onDeleteMilestone={handleDeleteMilestone}
               />
             ))}
           </div>
@@ -373,9 +397,8 @@ function InfoTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MilestoneCard({
+const MilestoneCard = memo(function MilestoneCard({
   milestone,
-  goalId,
   isRewardClaimed,
   isExpanded,
   onToggleExpand,
@@ -386,15 +409,14 @@ function MilestoneCard({
   onDeleteMilestone,
 }: {
   milestone: Milestone;
-  goalId: string;
   isRewardClaimed: boolean;
   isExpanded: boolean;
-  onToggleExpand: () => void;
-  onToggleShortGoal: (goalId: string, milestoneId: string, shortGoalId: string) => void;
-  onAddShortGoal: (goalId: string, milestoneId: string, shortGoal: Milestone['shortGoals'][number]) => void;
-  onUpdateShortGoal: (goalId: string, milestoneId: string, shortGoalId: string, updates: Partial<Milestone['shortGoals'][number]>) => void;
-  onDeleteShortGoal: (goalId: string, milestoneId: string, shortGoalId: string) => void;
-  onDeleteMilestone: () => void;
+  onToggleExpand: (milestoneId: string) => void;
+  onToggleShortGoal: (milestoneId: string, shortGoalId: string) => void;
+  onAddShortGoal: (milestoneId: string, shortGoal: Milestone['shortGoals'][number]) => void;
+  onUpdateShortGoal: (milestoneId: string, shortGoalId: string, updates: Partial<Milestone['shortGoals'][number]>) => void;
+  onDeleteShortGoal: (milestoneId: string, shortGoalId: string) => void;
+  onDeleteMilestone: (milestoneId: string) => void;
 }) {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskMinutes, setNewTaskMinutes] = useState('');
@@ -412,7 +434,7 @@ function MilestoneCard({
   const handleAddShortGoal = () => {
     if (!newTaskTitle.trim()) return;
 
-    onAddShortGoal(goalId, milestone.id, {
+    onAddShortGoal(milestone.id, {
       id: `sg${Date.now()}`,
       title: newTaskTitle.trim(),
       completed: false,
@@ -435,7 +457,7 @@ function MilestoneCard({
 
   const handleSaveTask = () => {
     if (!editingTaskId || !editTaskTitle.trim()) return;
-    onUpdateShortGoal(goalId, milestone.id, editingTaskId, {
+    onUpdateShortGoal(milestone.id, editingTaskId, {
       title: editTaskTitle.trim(),
       estimatedTime: editTaskMinutes ? Number(editTaskMinutes) : undefined,
       priority: editTaskPriority,
@@ -456,11 +478,11 @@ function MilestoneCard({
         role="button"
         tabIndex={0}
         aria-expanded={isExpanded}
-        onClick={onToggleExpand}
+        onClick={() => onToggleExpand(milestone.id)}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            onToggleExpand();
+            onToggleExpand(milestone.id);
           }
         }}
         className="w-full p-4 flex items-start justify-between gap-3 transition-all duration-150 cursor-pointer"
@@ -469,7 +491,19 @@ function MilestoneCard({
           <div className="flex items-start gap-3 mb-2 min-w-0">
             <Checkbox checked={progress === 100} className="pointer-events-none" style={{ borderColor: progress === 100 ? 'var(--green-4)' : 'var(--divider)', backgroundColor: progress === 100 ? 'var(--green-4)' : 'transparent' }} />
             <div className="min-w-0 flex-1">
-              <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.25, wordBreak: 'break-word' }}>{milestone.title}</h4>
+              <h4
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  lineHeight: 1.25,
+                  wordBreak: 'break-word',
+                  borderLeft: '2px solid rgba(72,187,120,0.45)',
+                  paddingLeft: '10px',
+                }}
+              >
+                {milestone.title}
+              </h4>
             </div>
           </div>
           <div className="ml-7">
@@ -534,7 +568,7 @@ function MilestoneCard({
                   <Checkbox
                     checked={shortGoal.completed}
                     disabled={isRewardClaimed}
-                    onCheckedChange={() => onToggleShortGoal(goalId, milestone.id, shortGoal.id)}
+                    onCheckedChange={() => onToggleShortGoal(milestone.id, shortGoal.id)}
                     style={{
                       borderColor: shortGoal.completed ? 'var(--green-4)' : 'var(--divider)',
                       backgroundColor: shortGoal.completed ? 'var(--green-4)' : 'transparent',
@@ -768,7 +802,7 @@ function MilestoneCard({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onDeleteShortGoal(goalId, milestone.id, shortGoal.id)}
+                          onClick={() => onDeleteShortGoal(milestone.id, shortGoal.id)}
                           className="rounded-lg transition-all duration-150 px-3"
                           style={{
                             height: '34px',
@@ -818,7 +852,7 @@ function MilestoneCard({
                 type="button"
                 onClick={() => {
                   setIsManaging(false);
-                  onDeleteMilestone();
+                  onDeleteMilestone(milestone.id);
                 }}
                 className="rounded-xl transition-all duration-150 px-4 w-full"
                 style={{
@@ -856,4 +890,4 @@ function MilestoneCard({
       </Dialog>
     </div>
   );
-}
+});
