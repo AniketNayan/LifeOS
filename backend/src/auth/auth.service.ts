@@ -308,7 +308,7 @@ export class AuthService {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: (isProd ? 'none' : 'lax') as const,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
       maxAge: 15 * 60 * 1000,
     };
@@ -319,7 +319,7 @@ export class AuthService {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: (isProd ? 'none' : 'lax') as const,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     };
@@ -327,7 +327,7 @@ export class AuthService {
 
   private clearAuthCookies(res: Response) {
     const isProd = this.configService.get<string>('NODE_ENV') === 'production';
-    const sameSite = (isProd ? 'none' : 'lax') as const;
+    const sameSite = isProd ? 'none' : 'lax';
     const secure = isProd;
     res.clearCookie('access_token', {
       httpOnly: true,
