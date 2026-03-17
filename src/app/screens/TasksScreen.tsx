@@ -14,7 +14,7 @@ let lastTaskViewState: { view: 'all' | 'pending' | 'active' | 'future'; page: nu
 let hasLoadedTasksOnce = false;
 
 export function TasksScreen() {
-  const { fetchTasksPage, toggleTask, addTask, updateTask, deleteTask } = useData();
+  const { fetchTasksPage, toggleTask, addTask, updateTask, deleteTask, tasks: allTasks } = useData();
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [taskView, setTaskView] = useState<'all' | 'pending' | 'active' | 'future'>(lastTaskViewState.view);
@@ -31,6 +31,7 @@ export function TasksScreen() {
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('medium');
   const today = new Date().toISOString().split('T')[0];
   const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const pageSize = 20;
 
   const lastTaskQueryRef = useRef<string | null>(null);
   const inFlightTaskQueryRef = useRef<string | null>(null);
@@ -51,16 +52,38 @@ export function TasksScreen() {
     });
   };
 
+  const buildFilteredTasks = (items: Task[], view: typeof taskView) => {
+    if (view === 'pending') return items.filter(task => !task.completed && task.date <= today);
+    if (view === 'active') return items.filter(task => task.date === today);
+    if (view === 'future') return items.filter(task => task.date > today);
+    return items;
+  };
+
+  const hydrateFromAllTasks = () => {
+    const filtered = buildFilteredTasks(allTasks, taskView);
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const nextPage = Math.min(taskPage, totalPages);
+    const slice = filtered.slice((nextPage - 1) * pageSize, nextPage * pageSize);
+    if (nextPage !== taskPage) {
+      setTaskPage(nextPage);
+    }
+    setVisibleTasks(slice);
+    const pagination = { page: nextPage, pageSize, total, totalPages };
+    setTaskPagination(pagination);
+    taskPageCacheStore.set(queryKey, { items: slice, pagination });
+  };
+
   const loadTasks = async (options?: { silent?: boolean }) => {
     try {
       const query =
         taskView === 'pending'
-          ? { completed: false, to: today, page: taskPage, pageSize: 20 }
+          ? { completed: false, to: today, page: taskPage, pageSize }
           : taskView === 'active'
-            ? { date: today, page: taskPage, pageSize: 20 }
+            ? { date: today, page: taskPage, pageSize }
             : taskView === 'future'
-              ? { from: tomorrow, page: taskPage, pageSize: 20 }
-              : { page: taskPage, pageSize: 20 };
+              ? { from: tomorrow, page: taskPage, pageSize }
+              : { page: taskPage, pageSize };
 
       if (inFlightTaskQueryRef.current === queryKey) {
         return;
@@ -83,7 +106,7 @@ export function TasksScreen() {
       }
 
       inFlightTaskQueryRef.current = queryKey;
-      setIsLoadingTasks(!options?.silent && visibleTasks.length === 0 && !taskPageCacheStore.has(queryKey));
+      setIsLoadingTasks(!options?.silent && visibleTasks.length === 0 && !taskPageCacheStore.has(queryKey) && allTasks.length === 0);
 
       const { items, pagination } = await fetchTasksPage(query);
       if (inFlightTaskQueryRef.current === queryKey) {
@@ -110,8 +133,19 @@ export function TasksScreen() {
 
   useEffect(() => {
     lastTaskViewState = { view: taskView, page: taskPage };
+    if (allTasks.length > 0) {
+      hydrateFromAllTasks();
+      void loadTasks({ silent: true });
+      return;
+    }
     void loadTasks({ silent: taskPageCacheStore.has(queryKey) });
   }, [taskPage, taskView, queryKey]);
+
+  useEffect(() => {
+    if (allTasks.length > 0) {
+      hydrateFromAllTasks();
+    }
+  }, [allTasks, taskPage, taskView, queryKey]);
 
   const todayTasks = visibleTasks.filter(t => t.date === today);
   const pendingToday = todayTasks.filter(t => !t.completed);
