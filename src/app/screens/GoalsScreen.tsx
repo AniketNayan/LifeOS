@@ -6,6 +6,7 @@ import { SettingsButton } from '../components/SettingsButton';
 import { Goal } from '../types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Textarea } from '../components/ui/textarea';
 
 const goalPageCacheStore = new Map<string, { items: Goal[]; pagination: { page: number; pageSize: number; total: number; totalPages: number } | null }>();
@@ -28,6 +29,7 @@ export function GoalsScreen() {
   const [newGoalDescription, setNewGoalDescription] = useState('');
   const [newGoalTargetDate, setNewGoalTargetDate] = useState('');
   const [newGoalReward, setNewGoalReward] = useState('');
+  const [newGoalStatus, setNewGoalStatus] = useState<'active' | 'future'>('active');
 
   const lastGoalQueryRef = useRef<string | null>(null);
   const inFlightGoalQueryRef = useRef<string | null>(null);
@@ -102,7 +104,7 @@ export function GoalsScreen() {
       description: newGoalDescription,
       targetDate: newGoalTargetDate || undefined,
       reward: newGoalReward || undefined,
-      status: 'active',
+      status: newGoalStatus,
       milestones: [],
       contributionDays: 0,
       createdAt: new Date().toISOString().split('T')[0],
@@ -113,9 +115,10 @@ export function GoalsScreen() {
     setNewGoalDescription('');
     setNewGoalTargetDate('');
     setNewGoalReward('');
+    setNewGoalStatus('active');
     setIsCreating(false);
 
-    if (goalView === 'active' && goalPage === 1) {
+    if (goalView === createdGoal.status && goalPage === 1) {
       setVisibleGoals((prev) => {
         const next = [createdGoal, ...prev].slice(0, 12);
         goalPageCacheStore.set(queryKey, { items: next, pagination: goalPagination ?? null });
@@ -160,6 +163,15 @@ export function GoalsScreen() {
             <div className="space-y-3">
               <Input placeholder="Goal title" value={newGoalTitle} onChange={(e) => setNewGoalTitle(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
               <Textarea placeholder="Description" value={newGoalDescription} onChange={(e) => setNewGoalDescription(e.target.value)} rows={3} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
+              <Select value={newGoalStatus} onValueChange={(value) => setNewGoalStatus(value as 'active' | 'future')}>
+                <SelectTrigger style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }}>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active goal</SelectItem>
+                  <SelectItem value="future">Future goal</SelectItem>
+                </SelectContent>
+              </Select>
               <Input type="date" value={newGoalTargetDate} onChange={(e) => setNewGoalTargetDate(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
               <Input placeholder="Reward" value={newGoalReward} onChange={(e) => setNewGoalReward(e.target.value)} style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--divider)', color: 'var(--text-primary)' }} />
               <button onClick={handleCreateGoal} className="primary-button w-full rounded-xl transition-all duration-150" style={{ height: '42px', fontSize: '14px', fontWeight: 700 }}>
