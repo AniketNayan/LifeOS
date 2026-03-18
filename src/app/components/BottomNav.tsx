@@ -37,7 +37,7 @@ export function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`nav-tab flex flex-col items-center justify-center gap-1 min-h-[44px] md:flex-row md:gap-1.5 ${isActive ? 'nav-tab-active' : ''}`}
+              className={`nav-tab flex items-center justify-center gap-1.5 min-h-[44px] ${isActive ? 'nav-tab-active' : ''}`}
               style={{
                 color: isActive ? 'var(--green-5)' : 'var(--text-secondary)',
                 transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
