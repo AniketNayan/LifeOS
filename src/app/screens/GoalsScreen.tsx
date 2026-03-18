@@ -93,11 +93,6 @@ export function GoalsScreen() {
           );
         })}
       </div>
-        }
-      }
-    } finally {
-      if (inFlightGoalQueryRef.current) {
-        inFlightGoalQueryRef.current = null;
       }
       setIsLoadingGoals(false);
     }
