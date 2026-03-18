@@ -486,10 +486,11 @@
 
   .nav-selector-pill {
     position: absolute;
-    left: 4px;
-    top: 4px;
-    bottom: 4px;
-    width: calc(25% - 8px);
+    left: 2px;
+    right: 2px;
+    top: 3px;
+    bottom: 3px;
+    width: calc(25% - 4px);
     border-radius: 15px;
     background: rgba(72, 187, 120, 0.12);
     border: 1px solid rgba(72, 187, 120, 0.16);
