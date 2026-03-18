@@ -401,6 +401,8 @@ function OverviewTile({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Add missing closing brace for GoalsScreen
+}
     </div>
   );
 }
