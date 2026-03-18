@@ -93,10 +93,6 @@ export function GoalsScreen() {
           );
         })}
       </div>
-      }
-      setIsLoadingGoals(false);
-    }
-  };
 
   useEffect(() => {
     setGoalPage(1);
