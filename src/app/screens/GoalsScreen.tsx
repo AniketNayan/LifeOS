@@ -401,6 +401,12 @@ function OverviewTile({ label, value }: { label: string; value: string }) {
   );
 }
 
+// Add missing closing brace for GoalsScreen
+}
+    </div>
+  );
+}
+
 function GoalLane({ title, goals, onOpen, empty }: { title: string; goals: Goal[]; onOpen: (id: string) => void; empty: string }) {
   return (
     <section className="mb-5">
