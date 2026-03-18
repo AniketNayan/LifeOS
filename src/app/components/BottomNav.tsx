@@ -37,16 +37,18 @@ export function BottomNav() {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`nav-tab flex items-center justify-center gap-1.5 min-h-[44px] ${isActive ? 'nav-tab-active' : ''}`}
+              className={`nav-tab flex flex-col items-center justify-center gap-0.5 min-h-[46px] px-2 py-1 md:flex-row md:gap-1.5 md:min-h-[44px] md:px-0 md:py-0 ${isActive ? 'nav-tab-active' : ''}`}
               style={{
                 color: isActive ? 'var(--green-5)' : 'var(--text-secondary)',
-                transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+                transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
+                borderRadius: '12px',
+                transition: 'color 220ms, transform 220ms',
               }}
             >
-              <span className="nav-tab-icon">
-                <Icon size={17} strokeWidth={2.1} />
+              <span className="nav-tab-icon" style={{ width: 24, height: 24, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon size={18} strokeWidth={2.1} />
               </span>
-              <span style={{ fontSize: '12px', letterSpacing: '0.01em', fontWeight: isActive ? 600 : 500, lineHeight: 1.1, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ fontSize: '13px', letterSpacing: '0.01em', fontWeight: isActive ? 700 : 500, lineHeight: 1.15, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 0 }}>
                 {tab.label}
               </span>
             </button>
