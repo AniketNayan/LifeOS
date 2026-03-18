@@ -40,9 +40,11 @@ export function BottomNav() {
               className={`nav-tab flex flex-col items-center justify-center gap-0.5 min-h-[46px] px-2 py-1 md:flex-row md:gap-1.5 md:min-h-[44px] md:px-0 md:py-0 ${isActive ? 'nav-tab-active nav-tab-active-custom' : ''}`}
               style={{
                 color: isActive ? 'var(--green-5)' : 'var(--text-secondary)',
+                background: isActive ? 'rgba(72,187,120,0.08)' : 'transparent',
+                boxShadow: isActive ? '0 2px 8px rgba(72,187,120,0.08)' : 'none',
                 transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                 borderRadius: '12px',
-                transition: 'color 220ms, transform 220ms',
+                transition: 'background 220ms, color 220ms, box-shadow 220ms, transform 220ms',
               }}
             >
               <span className="nav-tab-icon" style={{ width: 28, height: 28, background: isActive ? 'rgba(72,187,120,0.12)' : 'transparent', borderRadius: 8, transition: 'background 220ms' }}>
