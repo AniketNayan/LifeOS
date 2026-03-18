@@ -45,10 +45,10 @@ export function BottomNav() {
                 transition: 'color 220ms, transform 220ms',
               }}
             >
-              <span className="nav-tab-icon" style={{ width: 28, height: 28, borderRadius: 8 }}>
-                <Icon size={20} strokeWidth={2.2} />
+              <span className="nav-tab-icon" style={{ width: 24, height: 24, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon size={18} strokeWidth={2.1} />
               </span>
-              <span style={{ fontSize: '13px', letterSpacing: '0.01em', fontWeight: isActive ? 700 : 500, lineHeight: 1.15, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 2 }}>
+              <span style={{ fontSize: '13px', letterSpacing: '0.01em', fontWeight: isActive ? 700 : 500, lineHeight: 1.15, whiteSpace: 'nowrap', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: 0 }}>
                 {tab.label}
               </span>
             </button>
