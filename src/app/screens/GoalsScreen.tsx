@@ -37,6 +37,7 @@ export function GoalsScreen() {
   const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
     if (!startDate && targetDate && targetDate > today) return 'future';
+      <div
         className="app-card-muted"
         style={{
           position: 'relative',
