@@ -377,12 +377,30 @@ export function TasksScreen() {
         <div
           className="app-card"
           style={{
+            position: 'relative',
             padding: '6px',
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
             gap: '6px',
           }}
         >
+          {/* Animated pill */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '33.3333%',
+              borderRadius: 10,
+              background: 'rgba(72, 187, 120, 0.12)',
+              border: '1px solid rgba(72, 187, 120, 0.18)',
+              boxShadow: '0 2px 8px rgba(72, 187, 120, 0.08)',
+              transition: 'transform 320ms cubic-bezier(0.32, 0.72, 0.44, 1)',
+              transform: `translateX(${['all','active','future'].indexOf(taskView) * 100}%)`,
+              zIndex: 0,
+            }}
+          />
           {[
             { key: 'all', label: 'All' },
             { key: 'active', label: 'Active' },
@@ -395,12 +413,14 @@ export function TasksScreen() {
                 onClick={() => setTaskView(option.key as typeof taskView)}
                 className="rounded-lg transition-all duration-150"
                 style={{
+                  position: 'relative',
+                  zIndex: 1,
                   height: '42px',
                   fontSize: '13px',
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? 'var(--green-5)' : 'var(--text-muted)',
-                  background: isActive ? 'rgba(72, 187, 120, 0.12)' : 'transparent',
-                  border: isActive ? '1px solid rgba(72, 187, 120, 0.18)' : '1px solid transparent',
+                  background: 'transparent',
+                  border: '1px solid transparent',
                   boxShadow: 'none',
                 }}
               >

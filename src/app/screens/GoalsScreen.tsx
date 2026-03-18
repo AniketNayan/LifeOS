@@ -37,48 +37,62 @@ export function GoalsScreen() {
   const computeDefaultStatus = (startDate?: string, targetDate?: string) => {
     if (startDate && startDate > today) return 'future';
     if (!startDate && targetDate && targetDate > today) return 'future';
-    return 'active';
-  };
-
-  const lastGoalQueryRef = useRef<string | null>(null);
-  const inFlightGoalQueryRef = useRef<string | null>(null);
-
-  const queryKey = useMemo(() => JSON.stringify({ status: goalView, page: goalPage, pageSize: 12 }), [goalView, goalPage]);
-
-  const loadGoals = async (options?: { silent?: boolean }) => {
-    try {
-      if (inFlightGoalQueryRef.current === queryKey) {
-        return;
-      }
-
-      const cached = goalPageCacheStore.get(queryKey);
-      if (cached && !options?.silent) {
-        setVisibleGoals(cached.items);
-        setGoalPagination(cached.pagination ?? null);
-        lastGoalQueryRef.current = queryKey;
-        if (!hasLoadedGoalsOnce) {
-          hasLoadedGoalsOnce = true;
-          setHasLoadedOnce(true);
-        }
-        return;
-      }
-
-      if (lastGoalQueryRef.current === queryKey && visibleGoals.length > 0 && !options?.silent) {
-        return;
-      }
-
-      inFlightGoalQueryRef.current = queryKey;
-      setIsLoadingGoals(!options?.silent && visibleGoals.length === 0 && !goalPageCacheStore.has(queryKey));
-
-      const { items, pagination } = await fetchGoalsPage({ status: goalView, page: goalPage, pageSize: 12 });
-      if (inFlightGoalQueryRef.current === queryKey) {
-        setVisibleGoals(items);
-        setGoalPagination(pagination ?? null);
-        goalPageCacheStore.set(queryKey, { items, pagination: pagination ?? null });
-        lastGoalQueryRef.current = queryKey;
-        if (!hasLoadedGoalsOnce) {
-          hasLoadedGoalsOnce = true;
-          setHasLoadedOnce(true);
+      <div
+        className="app-card-muted"
+        style={{
+          position: 'relative',
+          padding: '4px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: '4px',
+          marginBottom: '12px',
+        }}
+      >
+        {/* Animated pill */}
+        <div
+          style={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: '33.3333%',
+            borderRadius: 10,
+            background: 'rgba(234, 179, 8, 0.16)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 2px 8px rgba(234, 179, 8, 0.08)',
+            transition: 'transform 320ms cubic-bezier(0.32, 0.72, 0.44, 1)',
+            transform: `translateX(${['active','future','completed'].indexOf(goalView) * 100}%)`,
+            zIndex: 0,
+          }}
+        />
+        {[
+          { key: 'active', label: 'Active' },
+          { key: 'future', label: 'Future' },
+          { key: 'completed', label: 'Completed' },
+        ].map((option) => {
+          const isActive = goalView === option.key;
+          return (
+            <button
+              key={option.key}
+              onClick={() => setGoalView(option.key as typeof goalView)}
+              className="rounded-lg transition-all duration-150"
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                height: '34px',
+                fontSize: '12px',
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                background: 'transparent',
+                border: '1px solid transparent',
+                boxShadow: 'none',
+              }}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
         }
       }
     } finally {
