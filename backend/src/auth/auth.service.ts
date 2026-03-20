@@ -86,7 +86,7 @@ export class AuthService {
     return this.finishLogin(user, res);
   }
 
-  async me(req: Request) {
+  async me(req: Request, res: Response) {
     try {
       const user = await this.getUserFromAccessToken(req);
       return {
@@ -94,6 +94,24 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
+        // Access token expired or missing — try a silent refresh before giving up.
+        const refreshToken = req.cookies?.refresh_token as string | undefined;
+        if (refreshToken) {
+          try {
+            const payload = this.verifyToken(refreshToken, this.getRefreshSecret());
+            const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+            if (user?.refreshTokenHash) {
+              const matches = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+              if (matches) {
+                // Issue fresh tokens and return the user.
+                const result = await this.finishLogin(user, res);
+                return result;
+              }
+            }
+          } catch {
+            // Refresh token also invalid — fall through to unauthenticated response.
+          }
+        }
         return { user: null };
       }
       throw error;

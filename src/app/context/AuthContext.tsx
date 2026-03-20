@@ -80,6 +80,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Proactively refresh the access token every 14 minutes (it expires in 15 min).
+  // This prevents silent logouts when the user is actively using the app.
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const REFRESH_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+
+    const interval = setInterval(() => {
+      void hydrateSession();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [Boolean(currentUser)]);
+
+  // Re-hydrate the session when the user returns to the tab after it was hidden.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && currentUser) {
+        void hydrateSession();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [Boolean(currentUser)]);
+
   const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {

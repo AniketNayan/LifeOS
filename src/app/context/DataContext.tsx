@@ -139,14 +139,32 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const heatmapData = useMemo(() => buildHeatmapData(tasks, dailyRecords), [tasks, dailyRecords]);
 
   const apiFetch = async <T,>(path: string, init?: RequestInit): Promise<T> => {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(init?.headers || {}),
-      },
-    });
+    const doFetch = () =>
+      fetch(`${API_BASE_URL}${path}`, {
+        ...init,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(init?.headers || {}),
+        },
+      });
+
+    let response = await doFetch();
+
+    // If we get a 401, try a silent token refresh and retry once.
+    if (response.status === 401) {
+      try {
+        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (refreshResponse.ok) {
+          response = await doFetch();
+        }
+      } catch {
+        // Refresh failed — let the 401 fall through.
+      }
+    }
 
     if (!response.ok) {
       throw new Error(`Request failed: ${response.status}`);

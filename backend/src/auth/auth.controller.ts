@@ -41,8 +41,8 @@ export class AuthController {
   }
 
   @Get('me')
-  me(@Req() req: Request) {
-    return this.authService.me(req);
+  me(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.authService.me(req, res);
   }
 
   @Get('google/url')
